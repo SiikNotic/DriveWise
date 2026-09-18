@@ -6,15 +6,23 @@ export interface OfferAnalyzerInput {
   estimatedDurationMinutes: number;
   /** Distance back to the driver's staging area, if it's out of the way. */
   estimatedReturnDistanceMiles: number | null;
+  /** Extra wait time (e.g. at the restaurant) beyond the platform's own time estimate. */
+  additionalWaitMinutes: number | null;
+  /** The active vehicle's total operating cost per mile — see calculateVehicleOperatingCost. */
   costPerMileUsd: number;
-  /** Below this hourly rate, the offer is flagged as not worth accepting. */
-  minAcceptableHourlyRateUsd: number;
+  /** Driver-configurable minimum acceptable net $/hour. */
+  minHourlyEarningsUsd: number;
+  /** Driver-configurable minimum acceptable net $/mile. */
+  minPerMileEarningsUsd: number;
 }
 
 /**
- * Core "is this offer worth it" calculation shared by web and mobile:
- * pay minus vehicle cost over total driving distance (including the
- * optional deadhead/return leg), expressed as net earnings and $/hour.
+ * Core "what is this offer actually worth" calculation shared by web and
+ * mobile. Deliberately produces a full, transparent breakdown rather than a
+ * single collapsed number: gross and net are both shown per-mile *and*
+ * per-hour, and the two threshold comparisons are independent booleans, not
+ * one merged verdict. This function never decides whether to accept an
+ * offer — it only surfaces the factors a driver would want when deciding.
  */
 export function analyzeDeliveryOffer(input: OfferAnalyzerInput): OfferAnalysis {
   const {
@@ -22,33 +30,38 @@ export function analyzeDeliveryOffer(input: OfferAnalyzerInput): OfferAnalysis {
     estimatedDistanceMiles,
     estimatedDurationMinutes,
     estimatedReturnDistanceMiles,
+    additionalWaitMinutes,
     costPerMileUsd,
-    minAcceptableHourlyRateUsd,
+    minHourlyEarningsUsd,
+    minPerMileEarningsUsd,
   } = input;
 
-  const totalDistanceMiles =
-    estimatedDistanceMiles + (estimatedReturnDistanceMiles ?? 0);
+  const round2 = (value: number) => Number(value.toFixed(2));
 
-  const vehicleCostUsd = Number((totalDistanceMiles * costPerMileUsd).toFixed(2));
-  const estimatedNetEarningsUsd = Number(
-    (offeredPayUsd - vehicleCostUsd).toFixed(2),
-  );
+  const totalMiles = estimatedDistanceMiles + (estimatedReturnDistanceMiles ?? 0);
+  const totalMinutes = estimatedDurationMinutes + (additionalWaitMinutes ?? 0);
+  const hours = totalMinutes / 60;
 
-  const hours = estimatedDurationMinutes / 60;
-  const effectiveHourlyRateUsd =
-    hours > 0 ? Number((estimatedNetEarningsUsd / hours).toFixed(2)) : 0;
+  const vehicleCostUsd = round2(totalMiles * costPerMileUsd);
+  const estimatedNetUsd = round2(offeredPayUsd - vehicleCostUsd);
 
-  const netEarningsPerMileUsd =
-    totalDistanceMiles > 0
-      ? Number((estimatedNetEarningsUsd / totalDistanceMiles).toFixed(2))
-      : 0;
+  const grossEarningsPerMileUsd = totalMiles > 0 ? round2(offeredPayUsd / totalMiles) : 0;
+  const netEarningsPerMileUsd = totalMiles > 0 ? round2(estimatedNetUsd / totalMiles) : 0;
+
+  const estimatedGrossHourlyUsd = hours > 0 ? round2(offeredPayUsd / hours) : 0;
+  const estimatedNetHourlyUsd = hours > 0 ? round2(estimatedNetUsd / hours) : 0;
 
   return {
-    totalDistanceMiles,
+    grossPayoutUsd: round2(offeredPayUsd),
+    totalMiles,
+    totalMinutes,
     vehicleCostUsd,
-    estimatedNetEarningsUsd,
-    effectiveHourlyRateUsd,
+    estimatedNetUsd,
+    grossEarningsPerMileUsd,
     netEarningsPerMileUsd,
-    isWorthIt: effectiveHourlyRateUsd >= minAcceptableHourlyRateUsd,
+    estimatedGrossHourlyUsd,
+    estimatedNetHourlyUsd,
+    meetsHourlyTarget: estimatedNetHourlyUsd >= minHourlyEarningsUsd,
+    meetsPerMileTarget: netEarningsPerMileUsd >= minPerMileEarningsUsd,
   };
 }

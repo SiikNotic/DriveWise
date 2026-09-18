@@ -12,6 +12,7 @@ import { Separator } from "@/components/ui/separator";
 import { LanguageSwitcher } from "@/components/settings/language-switcher";
 import { ThemeSwitcher } from "@/components/settings/theme-switcher";
 import { ProfileForm } from "@/components/settings/profile-form";
+import { ThresholdsForm } from "@/components/offers/thresholds-form";
 import { createClient } from "@/lib/supabase/server";
 
 export default async function SettingsPage(props: {
@@ -29,9 +30,17 @@ export default async function SettingsPage(props: {
   ]);
   const userId = claimsData?.claims.sub;
 
-  const { data: profile } = userId
-    ? await supabase.from("profiles").select("*").eq("user_id", userId).maybeSingle()
-    : { data: null };
+  const [{ data: profile }, { data: settings }] = await Promise.all([
+    userId
+      ? supabase.from("profiles").select("*").eq("user_id", userId).maybeSingle()
+      : Promise.resolve({ data: null }),
+    userId
+      ? supabase
+          .from("user_settings")
+          .select("min_hourly_earnings_usd, min_per_mile_earnings_usd")
+          .maybeSingle()
+      : Promise.resolve({ data: null }),
+  ]);
 
   return (
     <div className="flex flex-col gap-6">
@@ -83,6 +92,19 @@ export default async function SettingsPage(props: {
         <CardContent className="flex flex-col gap-4">
           <Label>{t("appearance.theme.label")}</Label>
           <ThemeSwitcher />
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>{t("offerTargets.title")}</CardTitle>
+          <CardDescription>{t("offerTargets.description")}</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <ThresholdsForm
+            minHourlyEarningsUsd={settings?.min_hourly_earnings_usd ?? 20}
+            minPerMileEarningsUsd={settings?.min_per_mile_earnings_usd ?? 1}
+          />
         </CardContent>
       </Card>
     </div>

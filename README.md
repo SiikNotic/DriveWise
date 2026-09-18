@@ -279,6 +279,70 @@ loading the dashboard with a real, authenticated session and real trip
 history is the one thing this sandbox can't do — the same limitation
 noted throughout this README.
 
+## Delivery Offer Analyzer
+
+DriveWise's main differentiating feature: before a driver taps Accept on a
+gig-platform offer, they can run it through a fast, transparent breakdown
+that accounts for their own vehicle's real operating cost — not just the
+platform's advertised pay.
+
+- **Five inputs, nothing else** (`components/offers/offer-form.tsx`): offer
+  payout, delivery miles and estimated time are required; return miles and
+  extra wait time are optional. There is no "Analyze" button — the entire
+  breakdown recomputes on every keystroke (the same live-preview pattern as
+  the Vehicle Profile's cost form), because the task's explicit requirement
+  is a driver being able to enter an offer in a few seconds, often while a
+  timer on the platform's own app is running.
+- **Uses the driver's actual active vehicle**, not a generic estimate: the
+  page server-fetches the active vehicle (same `user_settings.default_vehicle_id`
+  pattern as the Dashboard) and its full operating-cost breakdown via the
+  existing `calculateVehicleOperatingCost` — no separate cost model was
+  built for this feature, it reuses Vehicle Profile's exactly. If no active
+  vehicle is set, a warning banner says so and the estimate proceeds with
+  $0 vehicle cost rather than silently guessing.
+- **`analyzeDeliveryOffer`** (`packages/shared/src/calculations/offer-analyzer.ts`)
+  computes gross payout, total miles (delivery + return), total time
+  (estimated + extra wait), vehicle cost, estimated net, gross **and** net
+  $/mile, and gross **and** net $/hour — verified against the spec's worked
+  example ($9.50 offer, 4.2 mi, 28 min, 2 mi return, $0.47/mi cost → $2.91
+  vehicle cost, $6.59 net, exactly).
+- **Never a single collapsed verdict.** The explicit requirement was "no
+  utilices únicamente dollars-per-mile" — so the analysis produces two
+  *independent* booleans, `meetsHourlyTarget` and `meetsPerMileTarget`,
+  each shown as its own `StatusBadge` ("Meets your minimum hourly target" /
+  "Below your minimum hourly target", and the same for per-mile). An offer
+  can clear one bar and miss the other; the UI shows both, never merges
+  them into one accept/reject signal.
+- **Not a verdict at all.** There is no Accept/Reject recommendation
+  anywhere in the UI — only the numbers and the two factor badges, plus an
+  explicit disclaimer ("This is an estimate to help you decide — not a
+  recommendation to accept or decline this offer."), matching the same
+  "these are estimates" framing established by the Vehicle Profile's own
+  cost disclaimer.
+- **The two thresholds are driver-configurable**, not hardcoded: added as
+  `user_settings.min_hourly_earnings_usd` / `min_per_mile_earnings_usd`
+  (default $20/hr, $1/mi). They're editable from Settings and, since the
+  driver shouldn't have to leave the analyzer to change what "worth it"
+  means to them, inline on the Offer Analyzer page itself
+  (`components/offers/thresholds-form.tsx`, one Server Action, two render
+  sites).
+- **A full, step-by-step calculation trail** is always visible (never
+  collapsed behind a toggle) below the headline numbers — total miles,
+  total time, vehicle cost, estimated net, and all four $/mile and $/hour
+  figures, each as its own labeled row, so a driver can see exactly how
+  the final numbers were derived rather than trusting a black box.
+- **Optional Accept/Decline** buttons record the driver's decision into the
+  pre-existing `delivery_offers` table (it anticipated this feature from
+  the initial schema). This is deliberately the *only* thing built against
+  that table — no offers list/history page exists yet, matching the same
+  scope discipline applied to Trip list/detail (see below): recording is
+  implemented, browsing past decisions is not.
+
+**Verified**: the core formula was checked against the spec's worked
+example by hand and by an isolated Node script before wiring it into the
+UI; typecheck/lint/build clean; every `(app)` route including `/offers`
+re-checked against a production build with no runtime/RSC errors.
+
 ## Supabase
 
 A project (`drivewise`, `us-east-1`) is provisioned under the connected
@@ -588,7 +652,13 @@ this is a checklist for whoever connects the GitHub repo to Vercel.
 - A real Dashboard (see [Dashboard](#dashboard)): today's net/gross
   earnings, vehicle cost, miles, earnings per mile/hour, a rolling 7-day
   summary, and the live tracking status — no charts, exact priority order.
-- Settings page: profile fields, language switcher, theme switcher.
+- The Delivery Offer Analyzer (see
+  [Delivery Offer Analyzer](#delivery-offer-analyzer)): a fast, transparent,
+  multi-factor breakdown of any delivery offer against the driver's real
+  vehicle cost and their own configurable $/hour and $/mile targets — never
+  a single collapsed verdict.
+- Settings page: profile fields, language switcher, theme switcher, Offer
+  Analyzer targets.
 - A live deployment on Vercel (see [Deploying](#deploying-github--vercel)).
 
 **Planned, not yet built:**
@@ -596,5 +666,7 @@ this is a checklist for whoever connects the GitHub repo to Vercel.
   `apps/mobile/README.md`) — the native `LocationProvider`/`TripStore`
   implementations Mileage Tracking's abstractions are designed for.
 - Trip list/detail (browsing past trips — recording them is implemented),
-  expense CRUD, delivery offer analyzer form, tax mileage reports,
-  performance analytics.
+  expense CRUD, an offers list/history page (analyzing and recording a
+  decision is implemented — see
+  [Delivery Offer Analyzer](#delivery-offer-analyzer)), tax mileage
+  reports, performance analytics.

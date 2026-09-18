@@ -247,22 +247,52 @@
   },
   "offers": {
     "title": "Analizador de ofertas",
-    "subtitle": "Descubre si una oferta de entrega vale la pena antes de aceptarla.",
+    "subtitle": "Ingresa una oferta apenas llegue — el desglose se actualiza al instante.",
     "fields": {
-      "platform": "Plataforma",
-      "pay": "Pago ofrecido",
-      "distance": "Distancia",
+      "pay": "Pago de la oferta",
+      "distance": "Millas de entrega",
       "duration": "Tiempo estimado",
-      "returnDistance": "Distancia de regreso (opcional)"
+      "returnDistance": "Millas de regreso",
+      "waitMinutes": "Tiempo de espera adicional"
     },
-    "analyze": "Analizar oferta",
     "result": {
+      "title": "Desglose",
+      "grossPayout": "Pago bruto",
+      "totalMiles": "Millas totales",
+      "vehicleCost": "Costo del vehículo",
       "estimatedNet": "Neto estimado",
-      "operatingCost": "Costo operativo",
-      "earningsPerMile": "Ganancia por milla",
-      "earningsPerHour": "Ganancia por hora",
-      "worthIt": "Vale la pena",
-      "notWorthIt": "No vale la pena"
+      "grossPerMile": "Bruto por milla",
+      "netPerMile": "Neto por milla",
+      "grossPerHour": "Bruto por hora",
+      "netPerHour": "Neto por hora"
+    },
+    "howCalculated": {
+      "title": "Cómo se calculó",
+      "totalMiles": "Millas totales = millas de entrega + millas de regreso",
+      "totalTime": "Tiempo total = tiempo estimado + tiempo de espera adicional",
+      "vehicleCost": "Costo del vehículo = millas totales × el costo por milla de tu vehículo",
+      "estimatedNet": "Neto estimado = pago − costo del vehículo",
+      "grossPerMile": "Bruto por milla = pago ÷ millas totales",
+      "netPerMile": "Neto por milla = neto estimado ÷ millas totales",
+      "grossPerHour": "Bruto por hora = pago ÷ horas totales",
+      "netPerHour": "Neto por hora = neto estimado ÷ horas totales"
+    },
+    "factors": {
+      "title": "Frente a tus metas",
+      "hourlyMet": "Cumple con tu meta mínima por hora.",
+      "hourlyBelow": "Por debajo de tu meta mínima por hora.",
+      "perMileMet": "Cumple con tu meta mínima por milla.",
+      "perMileBelow": "Por debajo de tu meta mínima por milla."
+    },
+    "disclaimer": "Esta es una estimación para ayudarte a decidir — no una recomendación de aceptar o rechazar esta oferta.",
+    "noActiveVehicle": "Define un vehículo activo para incluir tu costo operativo real en esta estimación.",
+    "accept": "Aceptar oferta",
+    "decline": "Rechazar oferta",
+    "targets": {
+      "title": "Tus metas",
+      "minHourly": "Mínimo $/hora",
+      "minPerMile": "Mínimo $/milla",
+      "save": "Actualizar metas"
     },
     "decision": {
       "accepted": "Aceptada",
@@ -270,8 +300,8 @@
       "expired": "Expirada"
     },
     "empty": {
-      "title": "Todavía no has analizado ofertas",
-      "description": "Ingresa el pago, la distancia y el tiempo de una oferta para ver si vale la pena aceptarla."
+      "title": "Todavía no has ingresado una oferta",
+      "description": "Ingresa el pago, las millas y el tiempo de una oferta para ver el desglose completo."
     }
   },
   "vehicles": {
@@ -438,11 +468,16 @@
         "US": "Estados Unidos",
         "OTHER": "Otro"
       }
+    },
+    "offerTargets": {
+      "title": "Metas del Analizador de ofertas",
+      "description": "Las ganancias mínimas con las que el Analizador de ofertas evalúa cada oferta."
     }
   },
   "units": {
     "mi": "mi",
-    "hr": "h"
+    "hr": "h",
+    "min": "min"
   },
   "metrics": {
     "netEarnings": "Ganancia neta",

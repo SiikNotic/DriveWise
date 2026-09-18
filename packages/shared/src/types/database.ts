@@ -71,6 +71,8 @@ export interface Database {
           distance_unit: "mi" | "km";
           default_vehicle_id: string | null;
           standard_mileage_rate_usd: number;
+          min_hourly_earnings_usd: number;
+          min_per_mile_earnings_usd: number;
           updated_at: Timestamp;
         };
         Insert: Partial<

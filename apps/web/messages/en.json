@@ -247,22 +247,52 @@
   },
   "offers": {
     "title": "Offer Analyzer",
-    "subtitle": "See if a delivery offer is worth accepting before you tap Accept.",
+    "subtitle": "Enter an offer as it comes in — the breakdown updates instantly.",
     "fields": {
-      "platform": "Platform",
-      "pay": "Offered pay",
-      "distance": "Distance",
+      "pay": "Offer payout",
+      "distance": "Delivery miles",
       "duration": "Estimated time",
-      "returnDistance": "Return distance (optional)"
+      "returnDistance": "Return miles",
+      "waitMinutes": "Extra wait time"
     },
-    "analyze": "Analyze offer",
     "result": {
-      "estimatedNet": "Estimated Net",
-      "operatingCost": "Operating Cost",
-      "earningsPerMile": "Earnings per Mile",
-      "earningsPerHour": "Earnings per Hour",
-      "worthIt": "Worth it",
-      "notWorthIt": "Not worth it"
+      "title": "Breakdown",
+      "grossPayout": "Gross payout",
+      "totalMiles": "Total miles",
+      "vehicleCost": "Vehicle cost",
+      "estimatedNet": "Estimated net",
+      "grossPerMile": "Gross per mile",
+      "netPerMile": "Net per mile",
+      "grossPerHour": "Gross per hour",
+      "netPerHour": "Net per hour"
+    },
+    "howCalculated": {
+      "title": "How this was calculated",
+      "totalMiles": "Total miles = delivery miles + return miles",
+      "totalTime": "Total time = estimated time + extra wait time",
+      "vehicleCost": "Vehicle cost = total miles × your vehicle's cost per mile",
+      "estimatedNet": "Estimated net = payout − vehicle cost",
+      "grossPerMile": "Gross per mile = payout ÷ total miles",
+      "netPerMile": "Net per mile = estimated net ÷ total miles",
+      "grossPerHour": "Gross per hour = payout ÷ total hours",
+      "netPerHour": "Net per hour = estimated net ÷ total hours"
+    },
+    "factors": {
+      "title": "Against your targets",
+      "hourlyMet": "Meets your minimum hourly target.",
+      "hourlyBelow": "Below your minimum hourly target.",
+      "perMileMet": "Meets your minimum per-mile target.",
+      "perMileBelow": "Below your minimum per-mile target."
+    },
+    "disclaimer": "This is an estimate to help you decide — not a recommendation to accept or decline this offer.",
+    "noActiveVehicle": "Set an active vehicle to include your real operating cost in this estimate.",
+    "accept": "Accept offer",
+    "decline": "Decline offer",
+    "targets": {
+      "title": "Your targets",
+      "minHourly": "Minimum $/hour",
+      "minPerMile": "Minimum $/mile",
+      "save": "Update targets"
     },
     "decision": {
       "accepted": "Accepted",
@@ -270,8 +300,8 @@
       "expired": "Expired"
     },
     "empty": {
-      "title": "No offers analyzed yet",
-      "description": "Enter an offer's pay, distance and time to see if it's worth taking."
+      "title": "No offer entered yet",
+      "description": "Enter an offer's payout, miles and time to see the full breakdown."
     }
   },
   "vehicles": {
@@ -438,11 +468,16 @@
         "US": "United States",
         "OTHER": "Other"
       }
+    },
+    "offerTargets": {
+      "title": "Offer Analyzer targets",
+      "description": "The minimum earnings the Offer Analyzer checks every offer against."
     }
   },
   "units": {
     "mi": "mi",
-    "hr": "hr"
+    "hr": "hr",
+    "min": "min"
   },
   "metrics": {
     "netEarnings": "Net earnings",
