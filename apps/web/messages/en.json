@@ -425,16 +425,34 @@
   "analytics": {
     "title": "Analytics",
     "subtitle": "How your driving is really performing.",
-    "period": {
-      "week": "This week",
-      "month": "This month",
-      "year": "This year"
+    "tabs": {
+      "daily": "Daily",
+      "weekly": "Weekly",
+      "monthly": "Monthly"
     },
-    "bestDay": "Best day",
-    "bestPlatform": "Best platform",
-    "avgPerTrip": "Average per trip",
-    "avgPerHour": "Average per hour",
-    "totalTrips": "Total trips",
+    "metrics": {
+      "grossEarnings": "Gross earnings",
+      "netEarnings": "Net earnings",
+      "totalExpenses": "Total expenses",
+      "vehicleCosts": "Vehicle costs",
+      "miles": "Miles",
+      "businessMiles": "Business miles",
+      "earningsPerMile": "Earnings per mile",
+      "netEarningsPerMile": "Net earnings per mile",
+      "earningsPerHour": "Earnings per hour",
+      "avgTripDistance": "Average trip distance",
+      "avgTripDuration": "Average trip duration"
+    },
+    "comparison": {
+      "vsYesterday": "vs. yesterday",
+      "vsPreviousWeek": "vs. last week",
+      "vsPreviousMonth": "vs. last month",
+      "new": "New"
+    },
+    "charts": {
+      "netEarningsTrend": "Net earnings trend",
+      "netPerMileTrend": "Net earnings per mile trend"
+    },
     "empty": {
       "title": "Not enough data yet",
       "description": "Keep tracking trips to unlock your performance analytics."

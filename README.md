@@ -339,6 +339,56 @@ re-checked against a production build (redirect to login when
 unauthenticated, no runtime/RSC errors) alongside every other `(app)`
 route.
 
+## Analytics
+
+Daily/Weekly/Monthly performance, built entirely from real recorded data —
+no placeholder or estimated figures anywhere in this feature.
+
+- **Two kinds of metric, deliberately scoped differently**
+  (`lib/analytics/aggregate.ts`): "activity" metrics (Miles, Average trip
+  distance, Average trip duration) count *every* completed trip regardless
+  of purpose — that's how far the driver actually drove. Everything
+  earnings/cost-related (Gross/Net earnings, Vehicle costs, Business miles,
+  Earnings per mile/hour, Net earnings per mile) is scoped to **business**
+  trips only, matching the Dashboard's existing convention: a personal or
+  commute trip has no gig pay to count, and letting it dilute the cost/rate
+  math would misrepresent what driving for work actually earns.
+- **Vehicle costs** use the same `calculateVehicleOperatingCost` as every
+  other feature (Vehicle Profile, Dashboard, Offer Analyzer) — business
+  miles × the active vehicle's real cost/mile, never a separate estimate.
+- **Comparison, not just a snapshot**: each tab compares the current period
+  to the immediately preceding equal-length one — today vs. yesterday,
+  this rolling 7 days vs. the 7 before that (same convention as the
+  Dashboard's own week), this calendar month vs. last. Rendered through
+  `MetricCard`'s existing delta affordance (already built with comparison
+  in mind), colored by whether an increase is actually good for that
+  metric — an increase in Vehicle costs or Total expenses is red, not
+  green, the same principle already established for cost-per-mile.
+- **Two trend charts, not a wall of decoration**: net earnings and net
+  earnings per mile over time (14 days / 8 weeks / 6 months, depending on
+  the active tab) — chosen because they directly answer "how much do I
+  earn" and "how is my efficiency changing," the two things the task asked
+  the driver be able to see change over time. No third or fourth chart was
+  added just to fill space; both reuse one generic `TrendChart` component
+  rather than duplicating the same Recharts setup twice.
+- **No invented data**: Total expenses reads real Supabase `expenses` rows
+  — since Expense CRUD is still "planned, not yet built" (see below), this
+  legitimately reads $0.00 for every driver today, the same honest-gap
+  approach already taken on the Dashboard rather than fabricating a
+  plausible-looking number.
+- All aggregation happens client-side, over one bounded 7-month fetch of
+  trips/expenses (enough to cover the longest trend window plus its own
+  comparison period), computed in the browser against the driver's local
+  clock — consistent with the Dashboard and Trips list's own "the driver's
+  local day, not the server's" principle, so period boundaries never shift
+  for someone outside the deployment's timezone.
+
+**Verified**: the aggregation is pure, dependency-free functions
+(`computeMetrics`/`computeAnalytics`) exercised by hand against constructed
+trip/expense fixtures before wiring into the UI; typecheck/lint/build
+clean; `/analytics` re-checked against a production build alongside every
+other `(app)` route.
+
 ## Delivery Offer Analyzer
 
 DriveWise's main differentiating feature: before a driver taps Accept on a
@@ -721,6 +771,9 @@ this is a checklist for whoever connects the GitHub repo to Vercel.
   multi-factor breakdown of any delivery offer against the driver's real
   vehicle cost and their own configurable $/hour and $/mile targets — never
   a single collapsed verdict.
+- Analytics (see [Analytics](#analytics)): Daily/Weekly/Monthly performance
+  across 11 real metrics, period-over-period comparison, and two trend
+  charts — no invented or placeholder figures anywhere in it.
 - Settings page: profile fields, language switcher, theme switcher, Offer
   Analyzer targets.
 - A live deployment on Vercel (see [Deploying](#deploying-github--vercel)).
@@ -730,7 +783,9 @@ this is a checklist for whoever connects the GitHub repo to Vercel.
   `apps/mobile/README.md`) — the native `LocationProvider`/`TripStore`
   implementations Mileage Tracking's abstractions are designed for.
 - Manually adding a trip with no GPS recording (see
-  [Trip History](#trip-history)'s scope note), expense CRUD, an offers
-  list/history page (analyzing and recording a decision is implemented —
-  see [Delivery Offer Analyzer](#delivery-offer-analyzer)), tax mileage
-  reports, performance analytics.
+  [Trip History](#trip-history)'s scope note), expense CRUD (Analytics'
+  Total expenses legitimately reads $0.00 until this ships — see
+  [Analytics](#analytics)), an offers list/history page (analyzing and
+  recording a decision is implemented — see
+  [Delivery Offer Analyzer](#delivery-offer-analyzer)), tax mileage
+  reports.

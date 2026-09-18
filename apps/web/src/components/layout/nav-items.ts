@@ -1,4 +1,5 @@
 import {
+  BarChart3Icon,
   CalculatorIcon,
   CarIcon,
   LayoutDashboardIcon,
@@ -8,8 +9,8 @@ import {
 } from "lucide-react";
 
 export interface NavItem {
-  href: "/" | "/trips" | "/offers" | "/vehicles" | "/settings";
-  labelKey: "nav.dashboard" | "nav.trips" | "nav.offers" | "nav.vehicles" | "nav.settings";
+  href: "/" | "/trips" | "/offers" | "/analytics" | "/vehicles" | "/settings";
+  labelKey: "nav.dashboard" | "nav.trips" | "nav.offers" | "nav.analytics" | "nav.vehicles" | "nav.settings";
   icon: LucideIcon;
 }
 
@@ -19,6 +20,7 @@ export const NAV_ITEMS: NavItem[] = [
   { href: "/", labelKey: "nav.dashboard", icon: LayoutDashboardIcon },
   { href: "/trips", labelKey: "nav.trips", icon: MapIcon },
   { href: "/offers", labelKey: "nav.offers", icon: CalculatorIcon },
+  { href: "/analytics", labelKey: "nav.analytics", icon: BarChart3Icon },
   { href: "/vehicles", labelKey: "nav.vehicles", icon: CarIcon },
   { href: "/settings", labelKey: "nav.settings", icon: SettingsIcon },
 ];

@@ -425,16 +425,34 @@
   "analytics": {
     "title": "Estadísticas",
     "subtitle": "Qué tan bien te está yendo manejando, en números.",
-    "period": {
-      "week": "Esta semana",
-      "month": "Este mes",
-      "year": "Este año"
+    "tabs": {
+      "daily": "Diario",
+      "weekly": "Semanal",
+      "monthly": "Mensual"
     },
-    "bestDay": "Mejor día",
-    "bestPlatform": "Mejor plataforma",
-    "avgPerTrip": "Promedio por viaje",
-    "avgPerHour": "Promedio por hora",
-    "totalTrips": "Viajes totales",
+    "metrics": {
+      "grossEarnings": "Ganancia bruta",
+      "netEarnings": "Ganancia neta",
+      "totalExpenses": "Gastos totales",
+      "vehicleCosts": "Costo del vehículo",
+      "miles": "Millas",
+      "businessMiles": "Millas de trabajo",
+      "earningsPerMile": "Ganancia por milla",
+      "netEarningsPerMile": "Ganancia neta por milla",
+      "earningsPerHour": "Ganancia por hora",
+      "avgTripDistance": "Distancia promedio por viaje",
+      "avgTripDuration": "Duración promedio por viaje"
+    },
+    "comparison": {
+      "vsYesterday": "vs. ayer",
+      "vsPreviousWeek": "vs. la semana pasada",
+      "vsPreviousMonth": "vs. el mes pasado",
+      "new": "Nuevo"
+    },
+    "charts": {
+      "netEarningsTrend": "Tendencia de ganancia neta",
+      "netPerMileTrend": "Tendencia de ganancia neta por milla"
+    },
     "empty": {
       "title": "Todavía no hay suficientes datos",
       "description": "Sigue registrando viajes para desbloquear tus estadísticas de rendimiento."
