@@ -25,12 +25,13 @@ import {
 } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { StatusBadge } from "@/components/patterns/status-badge";
-import { EmptyState, ErrorState } from "@/components/patterns/state-message";
+import { EmptyState } from "@/components/patterns/state-message";
 import { MetricCard } from "@/components/finance/metric-card";
 import { EarningsTrendChart } from "@/components/finance/earnings-trend-chart";
 import { EarningsByPlatformChart } from "@/components/finance/earnings-by-platform-chart";
 import {
   ButtonPlayground,
+  ErrorStatePlayground,
   InputPlayground,
   OverlayPlayground,
   TabsPlayground,
@@ -101,7 +102,6 @@ export default async function DesignSystemPage(props: {
   const t = await getTranslations("designSystem");
   const tm = await getTranslations("metrics");
   const ts = await getTranslations("status");
-  const tstates = await getTranslations("states");
   const tc = await getTranslations("common");
   const tu = await getTranslations("units");
   const mi = tu("mi");
@@ -206,7 +206,7 @@ export default async function DesignSystemPage(props: {
           <MetricCard
             className="sm:col-span-2 lg:col-span-3"
             size="hero"
-            icon={BanknoteIcon}
+            icon={<BanknoteIcon />}
             label={tm("netEarnings")}
             value={formatUsd(842.16, locale)}
             deltaLabel={`${formatSignedUsd(64.2, locale)} ${tm("vsPreviousPeriod")}`}
@@ -214,21 +214,21 @@ export default async function DesignSystemPage(props: {
             trend={NET_EARNINGS_TREND}
           />
           <MetricCard
-            icon={DollarSignIcon}
+            icon={<DollarSignIcon />}
             label={tm("grossEarnings")}
             value={formatUsd(1024.5, locale)}
             deltaLabel={`${formatSignedUsd(58, locale)} ${tm("vsPreviousPeriod")}`}
             deltaDirection="up"
           />
           <MetricCard
-            icon={RouteIcon}
+            icon={<RouteIcon />}
             label={tm("miles")}
             value={formatMiles(312.4, locale, mi)}
             deltaLabel={`+${formatMiles(18.2, locale, mi)} ${tm("vsPreviousPeriod")}`}
             deltaDirection="flat"
           />
           <MetricCard
-            icon={FuelIcon}
+            icon={<FuelIcon />}
             label={tm("costPerMile")}
             value={formatUsdPerMile(0.31, locale, mi)}
             deltaLabel={`${formatSignedUsd(0.02, locale)} ${tm("vsPreviousPeriod")}`}
@@ -236,14 +236,14 @@ export default async function DesignSystemPage(props: {
             isIncreaseGood={false}
           />
           <MetricCard
-            icon={GaugeIcon}
+            icon={<GaugeIcon />}
             label={tm("earningsPerMile")}
             value={formatUsdPerMile(1.85, locale, mi)}
             deltaLabel={`${formatSignedUsd(0.09, locale)} ${tm("vsPreviousPeriod")}`}
             deltaDirection="up"
           />
           <MetricCard
-            icon={TimerIcon}
+            icon={<TimerIcon />}
             label={tm("earningsPerHour")}
             value={formatUsdPerHour(24.6, locale, hr)}
             deltaLabel={`${formatSignedUsd(-1.1, locale)} ${tm("vsPreviousPeriod")}`}
@@ -280,11 +280,7 @@ export default async function DesignSystemPage(props: {
             title={t("sampleEmptyState.title")}
             description={t("sampleEmptyState.description")}
           />
-          <ErrorState
-            title={t("sampleErrorState.title")}
-            description={t("sampleErrorState.description")}
-            action={{ label: tstates("retry"), onClick: () => {} }}
-          />
+          <ErrorStatePlayground />
           <Card>
             <CardHeader>
               <CardTitle className="text-sm font-medium">

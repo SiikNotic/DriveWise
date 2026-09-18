@@ -259,15 +259,33 @@
     "title": "Vehicles",
     "subtitle": "Vehicles you use for deliveries.",
     "addVehicle": "Add vehicle",
+    "addTitle": "Add vehicle",
+    "addSubtitle": "Add a vehicle to start calculating its cost per mile.",
+    "editTitle": "Edit vehicle",
+    "editSubtitle": "Update this vehicle's details and cost inputs.",
+    "detailsBack": "Back to vehicles",
+    "vehicleInfo": "Vehicle info",
+    "operatingCosts": "Operating cost inputs",
+    "operatingCostsHint": "These are your own estimates — edit them anytime as your real costs change.",
     "fields": {
       "nickname": "Nickname",
       "make": "Make",
       "model": "Model",
       "year": "Year",
+      "trim": "Trim",
       "fuelType": "Fuel type",
-      "fuelEfficiency": "Fuel efficiency (MPG)",
-      "monthlyFixedCost": "Monthly fixed costs",
+      "fuelEfficiency": "MPG",
+      "fuelPrice": "Fuel price",
+      "insuranceMonthlyCost": "Insurance monthly cost",
+      "maintenanceCostPerMile": "Maintenance cost per mile",
+      "depreciationCostPerMile": "Depreciation cost per mile",
+      "otherOperatingCostPerMile": "Other operating cost per mile",
+      "estimatedMonthlyMiles": "Estimated monthly miles",
       "odometer": "Odometer"
+    },
+    "fieldHints": {
+      "fuelPrice": "Price per gallon (per kWh for electric).",
+      "estimatedMonthlyMiles": "Used only to spread your insurance's monthly bill across your miles."
     },
     "fuelType": {
       "gasoline": "Gasoline",
@@ -275,8 +293,18 @@
       "hybrid": "Hybrid",
       "electric": "Electric"
     },
-    "setDefault": "Set as default",
-    "isDefault": "Default vehicle",
+    "cost": {
+      "title": "Estimated operating cost",
+      "disclaimer": "These are operating-cost estimates based on the values you entered — not official tax or deduction figures.",
+      "fuel": "Fuel",
+      "maintenance": "Maintenance",
+      "depreciation": "Depreciation",
+      "insurance": "Insurance",
+      "other": "Other",
+      "total": "Total estimated cost"
+    },
+    "setActive": "Set as active vehicle",
+    "active": "Active vehicle",
     "empty": {
       "title": "No vehicles yet",
       "description": "Add a vehicle to start calculating your cost per mile."

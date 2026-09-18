@@ -259,15 +259,33 @@
     "title": "Vehículos",
     "subtitle": "Los vehículos que usas para hacer entregas.",
     "addVehicle": "Agregar vehículo",
+    "addTitle": "Agregar vehículo",
+    "addSubtitle": "Agrega un vehículo para empezar a calcular su costo por milla.",
+    "editTitle": "Editar vehículo",
+    "editSubtitle": "Actualiza los datos y costos de este vehículo.",
+    "detailsBack": "Volver a vehículos",
+    "vehicleInfo": "Información del vehículo",
+    "operatingCosts": "Costos operativos",
+    "operatingCostsHint": "Estas son tus propias estimaciones — edítalas cuando cambien tus costos reales.",
     "fields": {
       "nickname": "Apodo",
       "make": "Marca",
       "model": "Modelo",
       "year": "Año",
+      "trim": "Versión",
       "fuelType": "Tipo de combustible",
-      "fuelEfficiency": "Rendimiento (millas por galón)",
-      "monthlyFixedCost": "Costos fijos mensuales",
+      "fuelEfficiency": "Rendimiento (MPG)",
+      "fuelPrice": "Precio del combustible",
+      "insuranceMonthlyCost": "Costo mensual del seguro",
+      "maintenanceCostPerMile": "Costo de mantenimiento por milla",
+      "depreciationCostPerMile": "Costo de depreciación por milla",
+      "otherOperatingCostPerMile": "Otro costo operativo por milla",
+      "estimatedMonthlyMiles": "Millas mensuales estimadas",
       "odometer": "Millaje del odómetro"
+    },
+    "fieldHints": {
+      "fuelPrice": "Precio por galón (por kWh si es eléctrico).",
+      "estimatedMonthlyMiles": "Se usa solo para repartir el costo mensual del seguro entre tus millas."
     },
     "fuelType": {
       "gasoline": "Gasolina",
@@ -275,8 +293,18 @@
       "hybrid": "Híbrido",
       "electric": "Eléctrico"
     },
-    "setDefault": "Usar como predeterminado",
-    "isDefault": "Vehículo predeterminado",
+    "cost": {
+      "title": "Costo operativo estimado",
+      "disclaimer": "Estas son estimaciones de costo operativo basadas en los valores que ingresaste — no son cifras oficiales de impuestos ni de deducciones.",
+      "fuel": "Combustible",
+      "maintenance": "Mantenimiento",
+      "depreciation": "Depreciación",
+      "insurance": "Seguro",
+      "other": "Otro",
+      "total": "Costo total estimado"
+    },
+    "setActive": "Usar como vehículo activo",
+    "active": "Vehículo activo",
     "empty": {
       "title": "Todavía no hay vehículos",
       "description": "Agrega un vehículo para empezar a calcular tu costo por milla."

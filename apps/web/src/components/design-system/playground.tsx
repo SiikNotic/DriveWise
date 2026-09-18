@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { ErrorState } from "@/components/patterns/state-message";
 import {
   Select,
   SelectContent,
@@ -113,6 +114,25 @@ export function TabsPlayground() {
         {t("yearContent")}
       </TabsContent>
     </Tabs>
+  );
+}
+
+/**
+ * ErrorState's retry action needs a real event handler, which (like any
+ * function that isn't a Server Action) can't be passed in from the Server
+ * Component page — so this one demo instance lives here as a client leaf
+ * instead of being inlined there.
+ */
+export function ErrorStatePlayground() {
+  const t = useTranslations("designSystem");
+  const tstates = useTranslations("states");
+
+  return (
+    <ErrorState
+      title={t("sampleErrorState.title")}
+      description={t("sampleErrorState.description")}
+      action={{ label: tstates("retry"), onClick: () => {} }}
+    />
   );
 }
 

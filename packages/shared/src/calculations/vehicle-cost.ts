@@ -1,36 +1,68 @@
 import type { Vehicle } from "../types/vehicle";
 
-export interface VehicleCostInput {
-  vehicle: Pick<
-    Vehicle,
-    "fuelEfficiencyMpg" | "monthlyFixedCostUsd" | "costPerMileOverrideUsd"
-  >;
-  fuelPriceUsdPerGallon: number;
-  /** Assumed monthly business miles, used to spread fixed costs per mile. */
-  estimatedMonthlyBusinessMiles: number;
+export interface VehicleOperatingCostBreakdown {
+  fuelCostPerMileUsd: number;
+  maintenanceCostPerMileUsd: number;
+  depreciationCostPerMileUsd: number;
+  /** Insurance's flat monthly bill, spread over the vehicle's estimated monthly miles. */
+  insuranceCostPerMileUsd: number;
+  otherCostPerMileUsd: number;
+  totalCostPerMileUsd: number;
 }
 
 /**
- * Cost per mile combines variable fuel cost with fixed costs (insurance,
- * loan/lease payment) spread over the driver's estimated monthly mileage.
- * A manual override always wins, since some drivers prefer a flat estimate.
+ * These are operating-cost *estimates* the driver builds from their own
+ * inputs — never present them as official tax/deduction figures (that's
+ * `standardMileageRateUsd` in user_settings, a completely separate number
+ * set by the tax authority, not derived from any of this).
+ *
+ * Maintenance, depreciation, and "other" are already per-mile figures the
+ * driver enters directly, so there's nothing to derive — they pass through
+ * unchanged. Only fuel (price ÷ efficiency) and insurance (monthly bill ÷
+ * estimated monthly miles) require converting a different unit into $/mile.
  */
-export function calculateCostPerMileUsd(input: VehicleCostInput): number {
-  const { vehicle, fuelPriceUsdPerGallon, estimatedMonthlyBusinessMiles } = input;
+export function calculateVehicleOperatingCost(
+  vehicle: Pick<
+    Vehicle,
+    | "fuelEfficiencyMpg"
+    | "fuelPriceUsd"
+    | "insuranceMonthlyCostUsd"
+    | "maintenanceCostPerMileUsd"
+    | "depreciationCostPerMileUsd"
+    | "otherOperatingCostPerMileUsd"
+    | "estimatedMonthlyMiles"
+  >,
+): VehicleOperatingCostBreakdown {
+  const round = (value: number) => Number(value.toFixed(4));
 
-  if (vehicle.costPerMileOverrideUsd !== null) {
-    return vehicle.costPerMileOverrideUsd;
-  }
-
-  const fuelCostPerMile =
-    vehicle.fuelEfficiencyMpg && vehicle.fuelEfficiencyMpg > 0
-      ? fuelPriceUsdPerGallon / vehicle.fuelEfficiencyMpg
+  const fuelCostPerMileUsd =
+    vehicle.fuelEfficiencyMpg > 0
+      ? round(vehicle.fuelPriceUsd / vehicle.fuelEfficiencyMpg)
       : 0;
 
-  const fixedCostPerMile =
-    vehicle.monthlyFixedCostUsd && estimatedMonthlyBusinessMiles > 0
-      ? vehicle.monthlyFixedCostUsd / estimatedMonthlyBusinessMiles
+  const insuranceCostPerMileUsd =
+    vehicle.estimatedMonthlyMiles > 0
+      ? round(vehicle.insuranceMonthlyCostUsd / vehicle.estimatedMonthlyMiles)
       : 0;
 
-  return Number((fuelCostPerMile + fixedCostPerMile).toFixed(4));
+  const maintenanceCostPerMileUsd = round(vehicle.maintenanceCostPerMileUsd);
+  const depreciationCostPerMileUsd = round(vehicle.depreciationCostPerMileUsd);
+  const otherCostPerMileUsd = round(vehicle.otherOperatingCostPerMileUsd);
+
+  const totalCostPerMileUsd = round(
+    fuelCostPerMileUsd +
+      maintenanceCostPerMileUsd +
+      depreciationCostPerMileUsd +
+      insuranceCostPerMileUsd +
+      otherCostPerMileUsd,
+  );
+
+  return {
+    fuelCostPerMileUsd,
+    maintenanceCostPerMileUsd,
+    depreciationCostPerMileUsd,
+    insuranceCostPerMileUsd,
+    otherCostPerMileUsd,
+    totalCostPerMileUsd,
+  };
 }

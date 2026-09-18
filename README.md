@@ -199,6 +199,70 @@ through once this runs somewhere with normal internet access (a deploy, or
 your own machine), plus the one-time email template change above, which
 this sandbox also can't perform.
 
+## Vehicle Profile
+
+Full CRUD for the vehicles a driver uses for deliveries, plus an operating
+cost-per-mile breakdown built from the driver's own inputs.
+
+- **Fields**: nickname, year, make, model, trim (optional), fuel type, MPG,
+  fuel price, insurance monthly cost, maintenance/depreciation/other cost
+  per mile, and an "estimated monthly miles" figure used only to spread
+  insurance's monthly bill across miles. All the cost fields are editable
+  any time — see `packages/shared/src/calculations/vehicle-cost.ts`.
+- **The math**: fuel cost/mile = fuel price ÷ MPG; insurance's per-mile
+  allocation = monthly cost ÷ estimated monthly miles; maintenance,
+  depreciation, and other cost/mile pass through unchanged (they're already
+  per-mile figures the driver enters); total = the sum of all five. Verified
+  against the worked example in the task spec (fuel $0.12 + maintenance
+  $0.10 + depreciation $0.18 + insurance $0.07 = $0.47/mile) — see
+  `CostBreakdown`'s live preview in the add/edit form.
+- **Not a tax figure**: every cost display carries a disclaimer
+  (`vehicles.cost.disclaimer`) that these are the driver's own operating-cost
+  estimates, not official tax/deduction numbers — that distinction was an
+  explicit requirement, not a nice-to-have.
+- **Screens**: `/vehicles` (list), `/vehicles/new` (add), `/vehicles/[id]`
+  (details + cost breakdown + edit/delete/set-active), `/vehicles/[id]/edit`.
+  All under the `(app)` route group, so they inherit the same auth guard as
+  everything else.
+- **Active vehicle**: reuses `user_settings.default_vehicle_id` (already
+  part of the schema from the initial migration) rather than adding a
+  second, competing "is this vehicle active" concept — `setActiveVehicleAction`
+  double-checks vehicle ownership before pointing a user's settings at it,
+  since RLS alone would let a user point their *own* settings row at
+  someone else's vehicle ID without that extra check (it just wouldn't let
+  them read that vehicle's data — still worth closing).
+- **Migration**: `supabase/migrations/20260919010000_vehicle_operating_costs.sql`
+  adds the cost columns, drops the now-redundant `is_active` and
+  `cost_per_mile_override_usd` columns from the original schema (nothing
+  used them yet), and makes MPG required. RLS policies are unchanged from
+  the initial schema (owner-only select/insert/update/delete) — this
+  migration only touches columns, not access rules.
+- **Tested**: `pnpm typecheck`/`lint`/`build` all pass. The cost formula was
+  verified against the spec's worked example in isolation. Full CRUD + RLS
+  isolation was verified directly against the live database (two test
+  users created via SQL, since the Auth API itself isn't reachable from
+  this sandbox — see the note under Authentication): create, read, update,
+  and delete all correctly scoped to the owner; a cross-user update/delete/
+  set-active attempt affects zero rows; deleting a vehicle that was the
+  active one correctly nulls `default_vehicle_id` via the existing
+  `on delete set null` foreign key. Test users and their data were deleted
+  afterward. All new routes were also checked over HTTP against a real
+  production build: unauthenticated requests to every vehicle route
+  redirect to `/login`, exactly like the rest of the app.
+- **A bug this work turned up and fixed, unrelated to vehicles**: testing
+  the vehicle pages at runtime (not just `next build`, which doesn't
+  exercise every dynamic route) surfaced a real, pre-existing defect on the
+  design-system reference page — `MetricCard` (a Client Component) was
+  receiving lucide icon *components* and an `onClick` function as props
+  directly from a Server Component, which Next.js's Server/Client boundary
+  doesn't allow (functions and component references aren't serializable
+  across it; rendered elements are). Fixed by changing `MetricCard`'s
+  `icon` prop to accept a rendered element (`icon={<BanknoteIcon />}`
+  instead of `icon={BanknoteIcon}`) and moving the one interactive
+  `ErrorState` demo into its own small Client Component. Confirmed fixed by
+  re-running the same production build and checking the server log for
+  every `(app)` route.
+
 ## Internationalization (English / Español)
 
 `apps/web` uses [`next-intl`](https://next-intl.dev) with locale-prefixed
@@ -306,22 +370,22 @@ this is a checklist for whoever connects the GitHub repo to Vercel.
   (tokens, Button/Card/Input/Label/Select/Tabs/Dialog/Tooltip/Badge/
   Skeleton/Alert/Toast/Chart, plus DriveWise's own MetricCard/StatusBadge/
   StateMessage/chart components — see [Design system](#design-system)),
-  bilingual EN/ES routing, light/dark mode, a Dashboard placeholder and a
-  working Settings page (language + theme switchers).
-- Supabase schema + RLS policies + Storage bucket, validated against a
-  local Postgres instance (table creation, triggers, and cross-user RLS
-  isolation were all exercised manually — see migration files for details).
-- Supabase browser/server/proxy client helpers, gated so the app still
-  runs before a project is linked.
+  bilingual EN/ES routing, light/dark mode.
+- A provisioned Supabase project (see [Supabase](#supabase)) with the full
+  schema + RLS policies + Storage bucket applied and verified.
+- Full Supabase Auth (see [Authentication](#authentication)): sign up,
+  login, logout, password recovery/reset, session persistence, protected
+  routes, and a user profile.
+- Full Vehicle Profile CRUD (see [Vehicle Profile](#vehicle-profile)): add/
+  edit/delete/list/view vehicles, an operating cost-per-mile breakdown, and
+  a per-user active-vehicle selection.
+- Settings page: profile fields, language switcher, theme switcher.
 
-**Planned, not yet built (intentionally — see the task instructions this
-was built against):**
+**Planned, not yet built:**
 - The actual `apps/mobile` Expo app (architecture documented in
   `apps/mobile/README.md`).
-- Trip list/detail, live GPS tracking UI, vehicle CRUD, expense CRUD,
-  delivery offer analyzer form, tax mileage reports, performance analytics.
-- Supabase Auth screens (login/signup) and route protection in `proxy.ts`
-  (currently it only refreshes the session cookie; see the comment in
-  `apps/web/src/lib/supabase/proxy.ts`).
-- A provisioned Supabase project and Vercel deployment (both require
-  credentials only the project owner can create).
+- Trip list/detail, live GPS tracking UI, expense CRUD, delivery offer
+  analyzer form, tax mileage reports, performance analytics, and a real
+  Dashboard (currently a placeholder).
+- A Vercel deployment (requires credentials only the project owner can
+  create).

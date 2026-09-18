@@ -22,21 +22,42 @@ export interface Database {
           make: string;
           model: string;
           year: number;
+          trim: string | null;
           fuel_type: "gasoline" | "diesel" | "hybrid" | "electric";
-          fuel_efficiency_mpg: number | null;
-          monthly_fixed_cost_usd: number | null;
-          cost_per_mile_override_usd: number | null;
+          fuel_efficiency_mpg: number;
+          fuel_price_usd: number;
+          insurance_monthly_cost_usd: number;
+          maintenance_cost_per_mile_usd: number;
+          depreciation_cost_per_mile_usd: number;
+          other_operating_cost_per_mile_usd: number;
+          estimated_monthly_miles: number;
           odometer_miles: number | null;
-          is_active: boolean;
           created_at: Timestamp;
           updated_at: Timestamp;
         };
         Insert: Omit<
           Database["public"]["Tables"]["vehicles"]["Row"],
-          "id" | "is_active" | "created_at" | "updated_at"
+          | "id"
+          | "trim"
+          | "fuel_price_usd"
+          | "insurance_monthly_cost_usd"
+          | "maintenance_cost_per_mile_usd"
+          | "depreciation_cost_per_mile_usd"
+          | "other_operating_cost_per_mile_usd"
+          | "estimated_monthly_miles"
+          | "odometer_miles"
+          | "created_at"
+          | "updated_at"
         > & {
           id?: string;
-          is_active?: boolean;
+          trim?: string | null;
+          fuel_price_usd?: number;
+          insurance_monthly_cost_usd?: number;
+          maintenance_cost_per_mile_usd?: number;
+          depreciation_cost_per_mile_usd?: number;
+          other_operating_cost_per_mile_usd?: number;
+          estimated_monthly_miles?: number;
+          odometer_miles?: number | null;
           created_at?: Timestamp;
           updated_at?: Timestamp;
         };

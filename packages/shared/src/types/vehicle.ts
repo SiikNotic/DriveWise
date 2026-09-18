@@ -8,15 +8,19 @@ export interface Vehicle {
   make: string;
   model: string;
   year: number;
+  trim: string | null;
   fuelType: FuelType;
   /** Miles per gallon, or MPGe for electric vehicles. */
-  fuelEfficiencyMpg: number | null;
-  /** Fixed monthly costs the driver assigns to this vehicle (insurance, loan, etc). */
-  monthlyFixedCostUsd: number | null;
-  /** Optional manual override; when absent, cost-per-mile is derived from fuel + fixed costs. */
-  costPerMileOverrideUsd: number | null;
+  fuelEfficiencyMpg: number;
+  /** Price per gallon (or per kWh for electric). */
+  fuelPriceUsd: number;
+  insuranceMonthlyCostUsd: number;
+  maintenanceCostPerMileUsd: number;
+  depreciationCostPerMileUsd: number;
+  otherOperatingCostPerMileUsd: number;
+  /** Assumed monthly mileage, used only to spread insurance's monthly cost per mile. */
+  estimatedMonthlyMiles: number;
   odometerMiles: number | null;
-  isActive: boolean;
   createdAt: string;
   updatedAt: string;
 }

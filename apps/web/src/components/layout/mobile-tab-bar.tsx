@@ -3,7 +3,7 @@
 import { useTranslations } from "next-intl";
 
 import { Link, usePathname } from "@/i18n/navigation";
-import { NAV_ITEMS } from "@/components/layout/nav-items";
+import { isNavItemActive, NAV_ITEMS } from "@/components/layout/nav-items";
 import { cn } from "@/lib/utils";
 
 /**
@@ -24,7 +24,7 @@ export function MobileTabBar() {
     >
       <div className="mx-auto flex max-w-5xl">
         {NAV_ITEMS.map((item) => {
-          const isActive = pathname === item.href;
+          const isActive = isNavItemActive(pathname, item.href);
           const Icon = item.icon;
           return (
             <Link

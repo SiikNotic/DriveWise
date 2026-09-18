@@ -8,8 +8,8 @@ import { initialActionState } from "@/lib/auth/types";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { SubmitButton } from "@/components/auth/submit-button";
-import { FormError } from "@/components/auth/form-error";
+import { SubmitButton } from "@/components/forms/submit-button";
+import { FormError } from "@/components/forms/form-error";
 import { Link } from "@/i18n/navigation";
 
 export function ForgotPasswordForm() {

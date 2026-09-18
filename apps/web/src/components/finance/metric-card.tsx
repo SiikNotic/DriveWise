@@ -1,7 +1,7 @@
 "use client";
 
 import { useId } from "react";
-import { TrendingDownIcon, TrendingUpIcon, type LucideIcon } from "lucide-react";
+import { TrendingDownIcon, TrendingUpIcon } from "lucide-react";
 import { Area, AreaChart } from "recharts";
 
 import { Card, CardContent } from "@/components/ui/card";
@@ -15,7 +15,13 @@ export interface MetricCardProps {
   label: string;
   /** Pre-formatted by the caller (packages/shared/format) — currency/unit-aware. */
   value: string;
-  icon?: LucideIcon;
+  /**
+   * A rendered icon element (e.g. `<BanknoteIcon />`), not a component
+   * reference — this card is a Client Component and most callers are Server
+   * Components, which can pass rendered elements across that boundary but
+   * not bare function/component references.
+   */
+  icon?: React.ReactNode;
   /** Pre-formatted delta text, e.g. "+$18.40 vs. previous period". */
   deltaLabel?: string;
   deltaDirection?: MetricDeltaDirection;
@@ -47,7 +53,7 @@ function deltaTone(
 export function MetricCard({
   label,
   value,
-  icon: Icon,
+  icon,
   deltaLabel,
   deltaDirection,
   isIncreaseGood = true,
@@ -65,8 +71,13 @@ export function MetricCard({
       <CardContent className="flex items-start justify-between gap-4 px-4">
         <div className="flex min-w-0 flex-col gap-1.5">
           <div className="flex items-center gap-1.5">
-            {Icon ? (
-              <Icon className="text-muted-foreground size-4 shrink-0" aria-hidden="true" />
+            {icon ? (
+              <span
+                className="text-muted-foreground [&>svg]:size-4 [&>svg]:shrink-0"
+                aria-hidden="true"
+              >
+                {icon}
+              </span>
             ) : null}
             <span className="text-muted-foreground text-sm">{label}</span>
           </div>
