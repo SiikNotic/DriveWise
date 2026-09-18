@@ -176,6 +176,8 @@ export class TripRecorder {
       endLocation: null,
       distanceMiles: 0,
       durationSeconds: 0,
+      earningsUsd: null,
+      tipsUsd: null,
       lastResumedAt: nowIso,
       lastAcceptedSample: null,
       lastCapturedAt: null,
@@ -214,7 +216,12 @@ export class TripRecorder {
     this.emit();
   }
 
-  async stop(): Promise<{ tripClientId: string }> {
+  /**
+   * `earnings` is optional and driver-entered — nothing computes it. A
+   * trip stopped without it simply has no earnings data yet; that's a
+   * legitimate, common case (e.g. logging pay later), not an error.
+   */
+  async stop(earnings?: { earningsUsd?: number | null; tipsUsd?: number | null }): Promise<{ tripClientId: string }> {
     if (!this.trip) {
       throw new Error("No active trip to stop.");
     }
@@ -233,6 +240,8 @@ export class TripRecorder {
       durationSeconds,
       endedAt: this.now().toISOString(),
       lastResumedAt: null,
+      earningsUsd: earnings?.earningsUsd ?? this.trip.earningsUsd,
+      tipsUsd: earnings?.tipsUsd ?? this.trip.tipsUsd,
     };
 
     await this.tripStore.updateTrip(finished.clientId, finished);

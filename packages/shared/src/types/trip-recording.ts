@@ -30,6 +30,9 @@ export interface StoredTrip {
   distanceMiles: number;
   /** Active recording time in seconds — excludes any paused intervals. */
   durationSeconds: number;
+  /** Driver-entered pay for this trip, if any — set (optionally) when the trip is stopped. Null while in progress. */
+  earningsUsd: number | null;
+  tipsUsd: number | null;
   /** Wall-clock time of the most recent pause/resume transition, for duration accounting. */
   lastResumedAt: string | null;
   /** The last GPS fix accepted by the filter (not necessarily captured/stored) — needed to judge the next fix's plausibility and capture-worthiness after a resume or app relaunch. */

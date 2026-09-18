@@ -160,6 +160,10 @@
     "title": "Panel",
     "subtitle": "Tu actividad de manejo de un vistazo",
     "placeholder": "El seguimiento de viajes, ganancias y analíticas de rendimiento aparecerán aquí a medida que se construyan.",
+    "today": "Hoy",
+    "weekSummary": "Resumen semanal",
+    "weekSummarySubtitle": "Últimos 7 días",
+    "noActivityToday": "Todavía no hay viajes registrados hoy.",
     "syncStatus": {
       "label": "Estado de sincronización",
       "online": "En línea — sincronizado",
@@ -188,7 +192,8 @@
     "webLimitationNotice": "El seguimiento funciona mientras esta pestaña está abierta — se pausa si cambias de pestaña, bloqueas la pantalla o tu dispositivo entra en reposo. Para un seguimiento confiable en segundo plano, usa la app móvil de DriveWise.",
     "fields": {
       "vehicle": "Vehículo",
-      "purpose": "Propósito"
+      "purpose": "Propósito",
+      "expectedPay": "Pago esperado"
     },
     "noVehicle": "Sin vehículo",
     "resumedAfterInterruption": "Recuperamos un viaje que se interrumpió — reanúdalo cuando estés listo.",
@@ -217,6 +222,7 @@
       "distance": "Distancia",
       "duration": "Duración",
       "earnings": "Ganancia",
+      "tips": "Propinas",
       "platform": "Plataforma",
       "purpose": "Motivo"
     },
@@ -443,6 +449,7 @@
     "grossEarnings": "Ganancia bruta",
     "miles": "Millas",
     "costPerMile": "Costo por milla",
+    "vehicleCost": "Costo del vehículo",
     "earningsPerMile": "Ganancia por milla",
     "earningsPerHour": "Ganancia por hora",
     "vsPreviousPeriod": "vs. período anterior"

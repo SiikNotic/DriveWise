@@ -96,7 +96,11 @@ export function useTripRecorder(userId: string) {
   );
   const pause = useCallback(() => engine.recorder.pause(), [engine]);
   const resume = useCallback(() => engine.recorder.resume(), [engine]);
-  const stop = useCallback(() => engine.recorder.stop(), [engine]);
+  const stop = useCallback(
+    (earnings?: { earningsUsd?: number | null; tipsUsd?: number | null }) =>
+      engine.recorder.stop(earnings),
+    [engine],
+  );
   const discard = useCallback(() => engine.recorder.discard(), [engine]);
 
   return { snapshot, justRecovered, start, pause, resume, stop, discard };

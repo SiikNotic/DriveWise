@@ -1,0 +1,212 @@
+"use client";
+
+import { useCallback, useEffect, useState } from "react";
+import { useLocale, useTranslations } from "next-intl";
+import {
+  BanknoteIcon,
+  CarIcon,
+  DollarSignIcon,
+  GaugeIcon,
+  ReceiptIcon,
+  RouteIcon,
+} from "lucide-react";
+import { formatMiles, formatUsd, formatUsdPerHour, formatUsdPerMile } from "@drivewise/shared";
+
+import { createClient } from "@/lib/supabase/client";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { MetricCard } from "@/components/finance/metric-card";
+
+interface Totals {
+  miles: number;
+  grossUsd: number;
+  expensesUsd: number;
+  durationSeconds: number;
+  tripCount: number;
+}
+
+const EMPTY_TOTALS: Totals = { miles: 0, grossUsd: 0, expensesUsd: 0, durationSeconds: 0, tripCount: 0 };
+
+function toLocalDateKey(date: Date): string {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+/** Adds a completed row's numbers into a running total, computed purely from the browser's own local clock — never the server's timezone. */
+function accumulate(totals: Totals, distanceMiles: number, gross: number, durationSeconds: number): Totals {
+  return {
+    miles: totals.miles + distanceMiles,
+    grossUsd: totals.grossUsd + gross,
+    expensesUsd: totals.expensesUsd,
+    durationSeconds: totals.durationSeconds + durationSeconds,
+    tripCount: totals.tripCount + 1,
+  };
+}
+
+export function DashboardMetrics({
+  userId,
+  distanceUnitLabel,
+  hourUnitLabel,
+  activeVehicleCostPerMileUsd,
+  refreshSignal,
+}: {
+  userId: string;
+  distanceUnitLabel: string;
+  hourUnitLabel: string;
+  activeVehicleCostPerMileUsd: number | null;
+  refreshSignal: number;
+}) {
+  const t = useTranslations("dashboard");
+  const tm = useTranslations("metrics");
+  const te = useTranslations("expenses");
+  const locale = useLocale();
+
+  const [today, setToday] = useState<Totals>(EMPTY_TOTALS);
+  const [week, setWeek] = useState<Totals>(EMPTY_TOTALS);
+  const [loaded, setLoaded] = useState(false);
+
+  const fetchTotals = useCallback(async () => {
+    if (!userId) return;
+    const supabase = createClient();
+    const now = new Date();
+    const todayKey = toLocalDateKey(now);
+    const weekStart = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 6, 0, 0, 0, 0);
+
+    const [{ data: trips }, { data: expenses }] = await Promise.all([
+      supabase
+        .from("trips")
+        .select("distance_miles, duration_seconds, earnings_usd, tips_usd, ended_at")
+        .eq("status", "completed")
+        .eq("purpose", "business")
+        .gte("ended_at", weekStart.toISOString()),
+      supabase
+        .from("expenses")
+        .select("amount_usd, incurred_on")
+        .gte("incurred_on", toLocalDateKey(weekStart)),
+    ]);
+
+    let todayTotals = EMPTY_TOTALS;
+    let weekTotals = EMPTY_TOTALS;
+
+    for (const trip of trips ?? []) {
+      const gross = (trip.earnings_usd ?? 0) + (trip.tips_usd ?? 0);
+      weekTotals = accumulate(weekTotals, trip.distance_miles, gross, trip.duration_seconds);
+      if (trip.ended_at && toLocalDateKey(new Date(trip.ended_at)) === todayKey) {
+        todayTotals = accumulate(todayTotals, trip.distance_miles, gross, trip.duration_seconds);
+      }
+    }
+
+    for (const expense of expenses ?? []) {
+      weekTotals = { ...weekTotals, expensesUsd: weekTotals.expensesUsd + expense.amount_usd };
+      if (expense.incurred_on === todayKey) {
+        todayTotals = { ...todayTotals, expensesUsd: todayTotals.expensesUsd + expense.amount_usd };
+      }
+    }
+
+    setToday(todayTotals);
+    setWeek(weekTotals);
+    setLoaded(true);
+  }, [userId]);
+
+  useEffect(() => {
+    // Fetching from Supabase (an external system) and syncing the result
+    // into state is exactly what this effect is for; the setState calls
+    // inside fetchTotals happen after that async work resolves, not
+    // synchronously within this effect body.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    void fetchTotals();
+  }, [fetchTotals, refreshSignal]);
+
+  const vehicleCostPerMile = activeVehicleCostPerMileUsd ?? 0;
+  const todayVehicleCost = today.miles * vehicleCostPerMile;
+  const todayNet = today.grossUsd - today.expensesUsd - todayVehicleCost;
+  const todayEarningsPerMile = today.miles > 0 ? todayNet / today.miles : 0;
+  const todayEarningsPerHour =
+    today.durationSeconds > 0 ? todayNet / (today.durationSeconds / 3600) : 0;
+
+  const weekVehicleCost = week.miles * vehicleCostPerMile;
+  const weekNet = week.grossUsd - week.expensesUsd - weekVehicleCost;
+
+  return (
+    <div className="flex flex-col gap-4">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {/* Visual hierarchy, most to least important: net, $/hr, $/mi, miles, vehicle cost, gross, expenses. */}
+        <MetricCard
+          className="sm:col-span-2 lg:col-span-3"
+          size="hero"
+          icon={<BanknoteIcon />}
+          label={tm("netEarnings")}
+          value={loaded ? formatUsd(todayNet, locale) : "—"}
+        />
+        <MetricCard
+          icon={<GaugeIcon />}
+          label={tm("earningsPerHour")}
+          value={loaded ? formatUsdPerHour(todayEarningsPerHour, locale, hourUnitLabel) : "—"}
+        />
+        <MetricCard
+          icon={<DollarSignIcon />}
+          label={tm("earningsPerMile")}
+          value={loaded ? formatUsdPerMile(todayEarningsPerMile, locale, distanceUnitLabel) : "—"}
+        />
+        <MetricCard
+          icon={<RouteIcon />}
+          label={tm("miles")}
+          value={loaded ? formatMiles(today.miles, locale, distanceUnitLabel) : "—"}
+        />
+        <MetricCard
+          icon={<CarIcon />}
+          label={tm("vehicleCost")}
+          value={loaded ? formatUsd(todayVehicleCost, locale) : "—"}
+        />
+        <MetricCard
+          icon={<BanknoteIcon />}
+          label={tm("grossEarnings")}
+          value={loaded ? formatUsd(today.grossUsd, locale) : "—"}
+        />
+        <MetricCard
+          icon={<ReceiptIcon />}
+          label={te("title")}
+          value={loaded ? formatUsd(today.expensesUsd, locale) : "—"}
+        />
+      </div>
+
+      {loaded && today.tripCount === 0 ? (
+        <p className="text-muted-foreground text-center text-sm">{t("noActivityToday")}</p>
+      ) : null}
+
+      <Card>
+        <CardHeader>
+          <CardTitle>{t("weekSummary")}</CardTitle>
+          <CardDescription>{t("weekSummarySubtitle")}</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <dl className="grid grid-cols-2 gap-y-3 sm:grid-cols-3 lg:grid-cols-6">
+            <div className="flex flex-col gap-0.5">
+              <dt className="text-muted-foreground text-xs">{tm("netEarnings")}</dt>
+              <dd className="text-metric text-lg">{loaded ? formatUsd(weekNet, locale) : "—"}</dd>
+            </div>
+            <div className="flex flex-col gap-0.5">
+              <dt className="text-muted-foreground text-xs">{tm("miles")}</dt>
+              <dd className="text-metric text-lg">
+                {loaded ? formatMiles(week.miles, locale, distanceUnitLabel) : "—"}
+              </dd>
+            </div>
+            <div className="flex flex-col gap-0.5">
+              <dt className="text-muted-foreground text-xs">{tm("vehicleCost")}</dt>
+              <dd className="text-metric text-lg">{loaded ? formatUsd(weekVehicleCost, locale) : "—"}</dd>
+            </div>
+            <div className="flex flex-col gap-0.5">
+              <dt className="text-muted-foreground text-xs">{tm("grossEarnings")}</dt>
+              <dd className="text-metric text-lg">{loaded ? formatUsd(week.grossUsd, locale) : "—"}</dd>
+            </div>
+            <div className="flex flex-col gap-0.5">
+              <dt className="text-muted-foreground text-xs">{te("title")}</dt>
+              <dd className="text-metric text-lg">{loaded ? formatUsd(week.expensesUsd, locale) : "—"}</dd>
+            </div>
+          </dl>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}

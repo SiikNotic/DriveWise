@@ -12,12 +12,19 @@ import {
   Trash2Icon,
   TriangleAlertIcon,
 } from "lucide-react";
-import { formatDuration, formatMiles, type TripPurpose } from "@drivewise/shared";
+import {
+  formatDuration,
+  formatMiles,
+  formatUsdPerHour,
+  formatUsdPerMile,
+  type TripPurpose,
+} from "@drivewise/shared";
 
 import { useTripRecorder } from "@/hooks/use-trip-recorder";
 import { useOnlineStatus } from "@/hooks/use-online-status";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { NativeSelect } from "@/components/ui/native-select";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -47,13 +54,20 @@ export function TrackingPanel({
   userId,
   vehicles,
   distanceUnitLabel,
+  hourUnitLabel,
+  onTripCompleted,
 }: {
   userId: string;
   vehicles: { id: string; nickname: string }[];
   distanceUnitLabel: string;
+  hourUnitLabel: string;
+  /** Called right after a trip is successfully stopped — lets a sibling (today's/weekly metrics) know it's worth refetching. */
+  onTripCompleted?: () => void;
 }) {
   const t = useTranslations("tracking");
   const tp = useTranslations("trips.purpose");
+  const tf = useTranslations("trips.fields");
+  const tm = useTranslations("metrics");
   const tc = useTranslations("common");
   const tn = useTranslations("notifications");
   const te = useTranslations("errors");
@@ -66,27 +80,52 @@ export function TrackingPanel({
   const [vehicleId, setVehicleId] = useState<string>("");
   const [confirmAction, setConfirmAction] = useState<"stop" | "discard" | null>(null);
   const [busy, setBusy] = useState(false);
+  const [earningsInput, setEarningsInput] = useState("");
+  const [tipsInput, setTipsInput] = useState("");
+  const [expectedPayInput, setExpectedPayInput] = useState("");
 
   const isIdle = snapshot.status === "idle";
   const isPaused = snapshot.status === "paused";
+
+  const expectedPay = expectedPayInput ? Number(expectedPayInput) : null;
+  const perMile =
+    expectedPay !== null && snapshot.distanceMiles > 0 ? expectedPay / snapshot.distanceMiles : null;
+  const perHour =
+    expectedPay !== null && snapshot.durationSeconds > 0
+      ? expectedPay / (snapshot.durationSeconds / 3600)
+      : null;
 
   async function handleStart() {
     setBusy(true);
     try {
       await start({ vehicleId: vehicleId || null, purpose });
+      setExpectedPayInput("");
     } finally {
       setBusy(false);
     }
+  }
+
+  function openStopConfirm() {
+    setEarningsInput(expectedPayInput);
+    setConfirmAction("stop");
   }
 
   async function handleConfirm() {
     setBusy(true);
     try {
       if (confirmAction === "stop") {
-        await stop();
+        await stop({
+          earningsUsd: earningsInput ? Number(earningsInput) : null,
+          tipsUsd: tipsInput ? Number(tipsInput) : null,
+        });
+        setEarningsInput("");
+        setTipsInput("");
+        setExpectedPayInput("");
         toast(tn("tripSaved"));
+        onTripCompleted?.();
       } else if (confirmAction === "discard") {
         await discard();
+        setExpectedPayInput("");
       }
     } finally {
       setBusy(false);
@@ -170,23 +209,52 @@ export function TrackingPanel({
             ) : null}
 
             <div className="flex items-center justify-between">
-              <span className="text-muted-foreground text-sm">{t("inProgress")}</span>
+              <span className="text-muted-foreground text-sm font-semibold tracking-wide uppercase">
+                {t("inProgress")}
+              </span>
               <StatusBadge tone={GPS_TONE[snapshot.gpsStatus]}>
                 {t(`gpsStatus.${snapshot.gpsStatus}` as "gpsStatus.active")}
               </StatusBadge>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
               <div className="flex flex-col gap-1">
                 <span className="text-muted-foreground text-xs">{t("currentDistance")}</span>
-                <span className="text-metric text-3xl">
+                <span className="text-metric text-2xl">
                   {formatMiles(snapshot.distanceMiles, locale, distanceUnitLabel)}
                 </span>
               </div>
               <div className="flex flex-col gap-1">
                 <span className="text-muted-foreground text-xs">{t("currentDuration")}</span>
-                <span className="text-metric text-3xl">{formatDuration(snapshot.durationSeconds)}</span>
+                <span className="text-metric text-2xl">{formatDuration(snapshot.durationSeconds)}</span>
               </div>
+              <div className="flex flex-col gap-1">
+                <span className="text-muted-foreground text-xs">{tm("earningsPerHour")}</span>
+                <span className="text-metric text-2xl">
+                  {perHour !== null ? formatUsdPerHour(perHour, locale, hourUnitLabel) : "—"}
+                </span>
+              </div>
+              <div className="flex flex-col gap-1">
+                <span className="text-muted-foreground text-xs">{tm("earningsPerMile")}</span>
+                <span className="text-metric text-2xl">
+                  {perMile !== null ? formatUsdPerMile(perMile, locale, distanceUnitLabel) : "—"}
+                </span>
+              </div>
+            </div>
+
+            <div className="grid gap-1.5 sm:max-w-56">
+              <Label htmlFor="tracking-expected-pay">
+                {t("fields.expectedPay")} <span className="text-muted-foreground">({tc("optional")})</span>
+              </Label>
+              <Input
+                id="tracking-expected-pay"
+                type="number"
+                inputMode="decimal"
+                step="0.01"
+                min="0"
+                value={expectedPayInput}
+                onChange={(event) => setExpectedPayInput(event.target.value)}
+              />
             </div>
 
             <div className="flex flex-wrap gap-2">
@@ -201,7 +269,7 @@ export function TrackingPanel({
                   {t("pause")}
                 </Button>
               )}
-              <Button onClick={() => setConfirmAction("stop")} disabled={busy}>
+              <Button onClick={openStopConfirm} disabled={busy}>
                 <SquareIcon />
                 {t("stopTracking")}
               </Button>
@@ -236,6 +304,40 @@ export function TrackingPanel({
                 : t("discardTripConfirm.description")}
             </DialogDescription>
           </DialogHeader>
+
+          {confirmAction === "stop" ? (
+            <div className="grid grid-cols-2 gap-3">
+              <div className="grid gap-1.5">
+                <Label htmlFor="stop-earnings">
+                  {tf("earnings")} <span className="text-muted-foreground">({tc("optional")})</span>
+                </Label>
+                <Input
+                  id="stop-earnings"
+                  type="number"
+                  inputMode="decimal"
+                  step="0.01"
+                  min="0"
+                  value={earningsInput}
+                  onChange={(event) => setEarningsInput(event.target.value)}
+                />
+              </div>
+              <div className="grid gap-1.5">
+                <Label htmlFor="stop-tips">
+                  {tf("tips")} <span className="text-muted-foreground">({tc("optional")})</span>
+                </Label>
+                <Input
+                  id="stop-tips"
+                  type="number"
+                  inputMode="decimal"
+                  step="0.01"
+                  min="0"
+                  value={tipsInput}
+                  onChange={(event) => setTipsInput(event.target.value)}
+                />
+              </div>
+            </div>
+          ) : null}
+
           <DialogFooter>
             <DialogClose asChild>
               <Button variant="outline">{tc("cancel")}</Button>

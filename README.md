@@ -220,6 +220,65 @@ browser GPS permission prompt and real `watchPosition` fixes, and the
 authenticated dashboard UI end-to-end — the same live-browser limitation
 noted under Authentication above.
 
+## Dashboard
+
+Answers four questions immediately, in this order: how much did I make,
+how much did I drive, how much did it cost, how much did I *really* earn.
+Deliberately no charts — a driver checking this between deliveries needs
+numbers, not something to interpret.
+
+- **Visual hierarchy** (`components/dashboard/dashboard-metrics.tsx`): net
+  earnings is the one hero tile (per the dataviz skill's "exactly one hero
+  per view" rule); earnings/hour, earnings/mile, miles, vehicle cost, gross
+  earnings, and expenses follow at equal weight, in that order — matching
+  the priority the task itself specified, not an arbitrary grid order.
+- **"Today" is the driver's local day, not the server's.** Trip and expense
+  totals are fetched and bucketed in the browser (`dashboard-metrics.tsx`
+  uses the Supabase browser client, not a Server Component), because a
+  server in `iad1` computing "today" in UTC would silently shift which
+  trips count as "today" for anyone driving outside that timezone. Expense
+  dates (`incurred_on`) are a plain SQL `date` with no timezone attached at
+  all, so they're compared directly.
+- **Vehicle cost** for the period is miles driven × the *active* vehicle's
+  total operating cost per mile (see [Vehicle Profile](#vehicle-profile)) —
+  computed server-side once at page load, since it only changes when the
+  driver edits a vehicle or changes their active one.
+- **Earnings per mile/hour are net, not gross** — deliberately. The whole
+  premise of DriveWise's "how much did I *really* earn" question is that
+  gross pay overstates what driving is worth; showing gross-based rates
+  here would undercut the same message the hero tile leads with.
+- **Current tracking status** lives in `TrackingPanel` itself (already
+  built for [Mileage Tracking](#mileage-tracking)) rather than as a
+  separate card, since duplicating a second "trip in progress" display
+  next to the one that already has Start/Pause/Stop would just be
+  confusing. It now also shows live $/mile and $/hour — computed against
+  an optional "expected pay" the driver can enter while tracking (there's
+  no live earnings source otherwise; delivery-offer pay entry is separate,
+  future work). Nothing here is fabricated: with no expected pay entered,
+  both read as "—", never a guessed number.
+- **Weekly summary** is a plain rolling 7-day total (including today) in a
+  compact stat row, not a second dashboard's worth of tiles.
+- **A real gap, made honest rather than hidden**: gross earnings and
+  expenses can only reflect data a driver has actually entered. Since
+  Expense CRUD and the delivery-offer pay flow are both still "planned,
+  not yet built" (see below), those numbers legitimately read $0.00 until
+  either ships — this dashboard reads real data, including the real
+  absence of it, rather than showing placeholder figures. The one bridge
+  built now: stopping a trip has an optional Earnings/Tips field (see
+  Mileage Tracking's stop flow), so gross/net earnings have at least one
+  real path to a nonzero number today.
+
+**Verified**: typecheck/lint/build clean; every `(app)` route (including
+this one) was re-checked over HTTP against a real production build for
+the same Server/Client-boundary class of bug the Vehicle Profile work
+caught on the design-system page — none found here. The aggregation
+queries and local-day bucketing logic were reviewed against the schema
+directly (`trips.ended_at` is `timestamptz`, `expenses.incurred_on` is a
+bare `date` — confirmed in the migrations) rather than assumed. Actually
+loading the dashboard with a real, authenticated session and real trip
+history is the one thing this sandbox can't do — the same limitation
+noted throughout this README.
+
 ## Supabase
 
 A project (`drivewise`, `us-east-1`) is provisioned under the connected
@@ -525,7 +584,10 @@ this is a checklist for whoever connects the GitHub repo to Vercel.
 - Full Mileage Tracking engine (see [Mileage Tracking](#mileage-tracking)):
   local-first GPS recording with start/pause/resume/stop, GPS filtering and
   battery/storage-efficient point capture, crash/suspend recovery, and an
-  idempotent sync queue — plus the Dashboard UI that drives it.
+  idempotent sync queue.
+- A real Dashboard (see [Dashboard](#dashboard)): today's net/gross
+  earnings, vehicle cost, miles, earnings per mile/hour, a rolling 7-day
+  summary, and the live tracking status — no charts, exact priority order.
 - Settings page: profile fields, language switcher, theme switcher.
 - A live deployment on Vercel (see [Deploying](#deploying-github--vercel)).
 

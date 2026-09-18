@@ -160,6 +160,10 @@
     "title": "Dashboard",
     "subtitle": "Your driving activity at a glance",
     "placeholder": "Trip tracking, earnings and performance analytics will appear here as they're built.",
+    "today": "Today",
+    "weekSummary": "Weekly summary",
+    "weekSummarySubtitle": "Last 7 days",
+    "noActivityToday": "No trips recorded today yet.",
     "syncStatus": {
       "label": "Sync status",
       "online": "Online — synced",
@@ -188,7 +192,8 @@
     "webLimitationNotice": "Tracking runs in this browser tab — it pauses if you switch tabs, lock your screen, or your device sleeps. For reliable background tracking, use the DriveWise mobile app.",
     "fields": {
       "vehicle": "Vehicle",
-      "purpose": "Purpose"
+      "purpose": "Purpose",
+      "expectedPay": "Expected pay"
     },
     "noVehicle": "No vehicle",
     "resumedAfterInterruption": "Picked up a trip that was interrupted — resume when you're ready.",
@@ -217,6 +222,7 @@
       "distance": "Distance",
       "duration": "Duration",
       "earnings": "Earnings",
+      "tips": "Tips",
       "platform": "Platform",
       "purpose": "Purpose"
     },
@@ -443,6 +449,7 @@
     "grossEarnings": "Gross earnings",
     "miles": "Miles",
     "costPerMile": "Cost per mile",
+    "vehicleCost": "Vehicle cost",
     "earningsPerMile": "Earnings per mile",
     "earningsPerHour": "Earnings per hour",
     "vsPreviousPeriod": "vs. previous period"
