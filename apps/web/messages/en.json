@@ -1,0 +1,42 @@
+{
+  "app": {
+    "name": "DriveWise",
+    "tagline": "Mileage, earnings and expenses for gig delivery drivers"
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "trips": "Trips",
+    "offers": "Offer Analyzer",
+    "expenses": "Expenses",
+    "reports": "Tax Reports",
+    "settings": "Settings"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "subtitle": "Your driving activity at a glance",
+    "placeholder": "Trip tracking, earnings and performance analytics will appear here as they're built.",
+    "syncStatus": {
+      "label": "Sync status",
+      "online": "Online — synced",
+      "offline": "Offline — saving trips locally"
+    }
+  },
+  "settings": {
+    "title": "Settings",
+    "subtitle": "Manage your language, units and defaults",
+    "language": {
+      "label": "Language",
+      "description": "Choose the language used across the app.",
+      "en": "English",
+      "es": "Español"
+    },
+    "distanceUnit": {
+      "label": "Distance unit",
+      "mi": "Miles",
+      "km": "Kilometers"
+    }
+  },
+  "common": {
+    "comingSoon": "Coming soon"
+  }
+}

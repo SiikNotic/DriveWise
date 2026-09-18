@@ -1,0 +1,42 @@
+{
+  "app": {
+    "name": "DriveWise",
+    "tagline": "Millaje, ganancias y gastos para repartidores de apps de delivery"
+  },
+  "nav": {
+    "dashboard": "Panel",
+    "trips": "Viajes",
+    "offers": "Analizador de ofertas",
+    "expenses": "Gastos",
+    "reports": "Reportes de impuestos",
+    "settings": "Configuración"
+  },
+  "dashboard": {
+    "title": "Panel",
+    "subtitle": "Tu actividad de manejo de un vistazo",
+    "placeholder": "El seguimiento de viajes, ganancias y analíticas de rendimiento aparecerán aquí a medida que se construyan.",
+    "syncStatus": {
+      "label": "Estado de sincronización",
+      "online": "En línea — sincronizado",
+      "offline": "Sin conexión — guardando viajes localmente"
+    }
+  },
+  "settings": {
+    "title": "Configuración",
+    "subtitle": "Administra tu idioma, unidades y valores predeterminados",
+    "language": {
+      "label": "Idioma",
+      "description": "Elige el idioma que se usa en toda la aplicación.",
+      "en": "English",
+      "es": "Español"
+    },
+    "distanceUnit": {
+      "label": "Unidad de distancia",
+      "mi": "Millas",
+      "km": "Kilómetros"
+    }
+  },
+  "common": {
+    "comingSoon": "Próximamente"
+  }
+}

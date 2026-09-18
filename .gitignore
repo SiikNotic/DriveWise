@@ -1,0 +1,50 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Next.js
+apps/web/.next/
+apps/web/out/
+apps/web/next-env.d.ts
+
+# Env files (never commit secrets)
+.env
+.env.local
+.env.*.local
+!.env.example
+!*/.env.example
+
+# Build outputs
+dist/
+build/
+*.tsbuildinfo
+
+# Expo / React Native (mobile app, future phase)
+apps/mobile/.expo/
+apps/mobile/dist/
+apps/mobile/web-build/
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+
+# Supabase local dev
+supabase/.branches/
+supabase/.temp/
+
+# Logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# OS / editor
+.DS_Store
+.vscode/*
+!.vscode/extensions.json
+.idea/
+
+# AI agent skill installs (local dev aid, not app code)
+.agents/
+.claude/
+skills-lock.json

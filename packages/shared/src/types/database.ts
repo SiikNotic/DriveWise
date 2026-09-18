@@ -1,0 +1,190 @@
+/**
+ * Hand-written to match supabase/migrations/*.sql until a real project is
+ * linked. Once it exists, regenerate the authoritative version with:
+ *   npx supabase gen types typescript --local > packages/shared/src/types/database.ts
+ * (or `--project-id <ref>` against the hosted project) and diff before
+ * committing — this file must never drift from the migrations.
+ */
+
+type Timestamp = string;
+
+export interface Database {
+  public: {
+    Tables: {
+      vehicles: {
+        Row: {
+          id: string;
+          user_id: string;
+          client_id: string;
+          nickname: string;
+          make: string;
+          model: string;
+          year: number;
+          fuel_type: "gasoline" | "diesel" | "hybrid" | "electric";
+          fuel_efficiency_mpg: number | null;
+          monthly_fixed_cost_usd: number | null;
+          cost_per_mile_override_usd: number | null;
+          odometer_miles: number | null;
+          is_active: boolean;
+          created_at: Timestamp;
+          updated_at: Timestamp;
+        };
+        Insert: Omit<
+          Database["public"]["Tables"]["vehicles"]["Row"],
+          "id" | "is_active" | "created_at" | "updated_at"
+        > & {
+          id?: string;
+          is_active?: boolean;
+          created_at?: Timestamp;
+          updated_at?: Timestamp;
+        };
+        Update: Partial<Database["public"]["Tables"]["vehicles"]["Insert"]>;
+      };
+      user_settings: {
+        Row: {
+          user_id: string;
+          language: "en" | "es";
+          distance_unit: "mi" | "km";
+          default_vehicle_id: string | null;
+          standard_mileage_rate_usd: number;
+          updated_at: Timestamp;
+        };
+        Insert: Partial<
+          Omit<Database["public"]["Tables"]["user_settings"]["Row"], "user_id">
+        > & { user_id: string };
+        Update: Partial<Database["public"]["Tables"]["user_settings"]["Insert"]>;
+      };
+      trips: {
+        Row: {
+          id: string;
+          user_id: string;
+          client_id: string;
+          vehicle_id: string | null;
+          platform:
+            | "doordash"
+            | "uber_eats"
+            | "grubhub"
+            | "instacart"
+            | "other"
+            | null;
+          purpose: "business" | "personal" | "commute";
+          source: "gps_auto" | "manual";
+          started_at: Timestamp;
+          ended_at: Timestamp | null;
+          start_latitude: number | null;
+          start_longitude: number | null;
+          end_latitude: number | null;
+          end_longitude: number | null;
+          route_simplified: { latitude: number; longitude: number }[] | null;
+          distance_miles: number;
+          duration_seconds: number;
+          earnings_usd: number | null;
+          tips_usd: number | null;
+          notes: string | null;
+          is_pending_sync: boolean;
+          created_at: Timestamp;
+          updated_at: Timestamp;
+        };
+        Insert: Omit<
+          Database["public"]["Tables"]["trips"]["Row"],
+          | "id"
+          | "purpose"
+          | "source"
+          | "distance_miles"
+          | "duration_seconds"
+          | "is_pending_sync"
+          | "created_at"
+          | "updated_at"
+        > & {
+          id?: string;
+          purpose?: Database["public"]["Tables"]["trips"]["Row"]["purpose"];
+          source?: Database["public"]["Tables"]["trips"]["Row"]["source"];
+          distance_miles?: number;
+          duration_seconds?: number;
+          is_pending_sync?: boolean;
+          created_at?: Timestamp;
+          updated_at?: Timestamp;
+        };
+        Update: Partial<Database["public"]["Tables"]["trips"]["Insert"]>;
+      };
+      trip_points: {
+        Row: {
+          id: string;
+          trip_id: string;
+          user_id: string;
+          client_id: string;
+          latitude: number;
+          longitude: number;
+          altitude_meters: number | null;
+          speed_mps: number | null;
+          horizontal_accuracy_meters: number | null;
+          recorded_at: Timestamp;
+          sequence: number;
+        };
+        Insert: Omit<Database["public"]["Tables"]["trip_points"]["Row"], "id"> & {
+          id?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["trip_points"]["Insert"]>;
+      };
+      delivery_offers: {
+        Row: {
+          id: string;
+          user_id: string;
+          client_id: string;
+          vehicle_id: string | null;
+          platform: "doordash" | "uber_eats" | "grubhub" | "instacart" | "other";
+          offered_pay_usd: number;
+          estimated_distance_miles: number;
+          estimated_duration_minutes: number;
+          estimated_return_distance_miles: number | null;
+          decision: "accepted" | "declined" | "expired";
+          linked_trip_id: string | null;
+          created_at: Timestamp;
+        };
+        Insert: Omit<
+          Database["public"]["Tables"]["delivery_offers"]["Row"],
+          "id" | "decision" | "created_at"
+        > & {
+          id?: string;
+          decision?: Database["public"]["Tables"]["delivery_offers"]["Row"]["decision"];
+          created_at?: Timestamp;
+        };
+        Update: Partial<Database["public"]["Tables"]["delivery_offers"]["Insert"]>;
+      };
+      expenses: {
+        Row: {
+          id: string;
+          user_id: string;
+          client_id: string;
+          vehicle_id: string | null;
+          category:
+            | "fuel"
+            | "maintenance"
+            | "insurance"
+            | "vehicle_payment"
+            | "phone_plan"
+            | "supplies"
+            | "parking_tolls"
+            | "other";
+          amount_usd: number;
+          incurred_on: string;
+          description: string | null;
+          receipt_storage_path: string | null;
+          is_tax_deductible: boolean;
+          created_at: Timestamp;
+          updated_at: Timestamp;
+        };
+        Insert: Omit<
+          Database["public"]["Tables"]["expenses"]["Row"],
+          "id" | "is_tax_deductible" | "created_at" | "updated_at"
+        > & {
+          id?: string;
+          is_tax_deductible?: boolean;
+          created_at?: Timestamp;
+          updated_at?: Timestamp;
+        };
+        Update: Partial<Database["public"]["Tables"]["expenses"]["Insert"]>;
+      };
+    };
+  };
+}
