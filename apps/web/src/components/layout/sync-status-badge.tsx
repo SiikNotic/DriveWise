@@ -1,26 +1,9 @@
 "use client";
 
-import { useSyncExternalStore } from "react";
 import { useTranslations } from "next-intl";
 
 import { StatusBadge } from "@/components/patterns/status-badge";
-
-function subscribe(callback: () => void) {
-  window.addEventListener("online", callback);
-  window.addEventListener("offline", callback);
-  return () => {
-    window.removeEventListener("online", callback);
-    window.removeEventListener("offline", callback);
-  };
-}
-
-function getSnapshot() {
-  return navigator.onLine;
-}
-
-function getServerSnapshot() {
-  return true;
-}
+import { useOnlineStatus } from "@/hooks/use-online-status";
 
 /**
  * Reflects browser connectivity only — a signal for the web dashboard, not a
@@ -29,7 +12,7 @@ function getServerSnapshot() {
  */
 export function SyncStatusBadge() {
   const t = useTranslations("dashboard.syncStatus");
-  const isOnline = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
+  const isOnline = useOnlineStatus();
 
   return (
     <StatusBadge tone={isOnline ? "positive" : "warning"} className="ml-1">

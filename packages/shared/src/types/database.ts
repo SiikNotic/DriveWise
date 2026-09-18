@@ -123,7 +123,8 @@ export interface Database {
           earnings_usd: number | null;
           tips_usd: number | null;
           notes: string | null;
-          is_pending_sync: boolean;
+          status: "tracking" | "paused" | "completed";
+          sync_status: "pending_sync" | "synced" | "sync_error";
           created_at: Timestamp;
           updated_at: Timestamp;
         };
@@ -134,7 +135,8 @@ export interface Database {
           | "source"
           | "distance_miles"
           | "duration_seconds"
-          | "is_pending_sync"
+          | "status"
+          | "sync_status"
           | "created_at"
           | "updated_at"
         > & {
@@ -143,7 +145,8 @@ export interface Database {
           source?: Database["public"]["Tables"]["trips"]["Row"]["source"];
           distance_miles?: number;
           duration_seconds?: number;
-          is_pending_sync?: boolean;
+          status?: Database["public"]["Tables"]["trips"]["Row"]["status"];
+          sync_status?: Database["public"]["Tables"]["trips"]["Row"]["sync_status"];
           created_at?: Timestamp;
           updated_at?: Timestamp;
         };

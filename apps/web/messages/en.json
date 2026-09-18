@@ -180,10 +180,23 @@
       "label": "GPS status",
       "active": "Active",
       "searching": "Searching for signal…",
-      "weak": "Weak signal"
+      "weak": "Weak signal",
+      "permissionDenied": "Location access denied",
+      "unsupported": "Location not available"
     },
     "offlineNotice": "You're offline — this trip is being saved on your device and will sync automatically.",
+    "webLimitationNotice": "Tracking runs in this browser tab — it pauses if you switch tabs, lock your screen, or your device sleeps. For reliable background tracking, use the DriveWise mobile app.",
+    "fields": {
+      "vehicle": "Vehicle",
+      "purpose": "Purpose"
+    },
+    "noVehicle": "No vehicle",
+    "resumedAfterInterruption": "Picked up a trip that was interrupted — resume when you're ready.",
     "discardTrip": "Discard trip",
+    "discardTripConfirm": {
+      "title": "Discard this trip?",
+      "description": "This trip hasn't been saved yet. Discarding it deletes the recorded route and can't be undone."
+    },
     "endTripConfirm": {
       "title": "End this trip?",
       "description": "We'll save it as a completed trip using the distance and time recorded so far."

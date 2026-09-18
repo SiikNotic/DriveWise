@@ -2,6 +2,12 @@ export type TripPurpose = "business" | "personal" | "commute";
 
 export type TripSource = "gps_auto" | "manual";
 
+/** Whether a trip is actively being recorded on-device — see trip-recording.ts's StoredTrip for the full local-recording shape this feeds into. */
+export type TripRecordingStatus = "tracking" | "paused" | "completed";
+
+/** Whether a *completed* trip has reached Supabase — orthogonal to TripRecordingStatus, and only meaningful once status is "completed" (see TripRecorder). */
+export type TripSyncStatus = "pending_sync" | "synced" | "sync_error";
+
 export type GigPlatform =
   | "doordash"
   | "uber_eats"
@@ -52,7 +58,8 @@ export interface Trip {
   earningsUsd: number | null;
   tipsUsd: number | null;
   notes: string | null;
-  isPendingSync: boolean;
+  status: TripRecordingStatus;
+  syncStatus: TripSyncStatus;
   createdAt: string;
   updatedAt: string;
 }

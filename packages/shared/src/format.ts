@@ -58,3 +58,16 @@ export function formatSignedUsd(value: number, locale: string): string {
   const sign = value > 0 ? "+" : "";
   return `${sign}${formatUsd(value, locale)}`;
 }
+
+/** Elapsed time as h:mm:ss (or mm:ss under an hour) — locale-independent, digits read the same everywhere. */
+export function formatDuration(totalSeconds: number): string {
+  const seconds = Math.max(0, Math.floor(totalSeconds));
+  const hours = Math.floor(seconds / 3600);
+  const minutes = Math.floor((seconds % 3600) / 60);
+  const secs = seconds % 60;
+  const pad = (value: number) => value.toString().padStart(2, "0");
+
+  return hours > 0
+    ? `${hours}:${pad(minutes)}:${pad(secs)}`
+    : `${minutes}:${pad(secs)}`;
+}

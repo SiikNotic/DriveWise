@@ -1,12 +1,7 @@
 import { getTranslations, setRequestLocale } from "next-intl/server";
 
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { createClient } from "@/lib/supabase/server";
+import { TrackingPanel } from "@/components/tracking/tracking-panel";
 
 export default async function DashboardPage(props: {
   params: Promise<{ locale: string }>;
@@ -14,6 +9,14 @@ export default async function DashboardPage(props: {
   const { locale } = await props.params;
   setRequestLocale(locale);
   const t = await getTranslations("dashboard");
+  const tu = await getTranslations("units");
+
+  const supabase = await createClient();
+  const [{ data: claimsData }, { data: vehicles }] = await Promise.all([
+    supabase.auth.getClaims(),
+    supabase.from("vehicles").select("id, nickname").order("created_at", { ascending: true }),
+  ]);
+  const userId = claimsData?.claims.sub ?? "";
 
   return (
     <div className="flex flex-col gap-6">
@@ -22,13 +25,7 @@ export default async function DashboardPage(props: {
         <p className="text-muted-foreground text-sm">{t("subtitle")}</p>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>{t("title")}</CardTitle>
-          <CardDescription>{t("placeholder")}</CardDescription>
-        </CardHeader>
-        <CardContent />
-      </Card>
+      <TrackingPanel userId={userId} vehicles={vehicles ?? []} distanceUnitLabel={tu("mi")} />
     </div>
   );
 }

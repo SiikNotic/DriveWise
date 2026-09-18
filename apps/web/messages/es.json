@@ -180,10 +180,23 @@
       "label": "Estado del GPS",
       "active": "Activo",
       "searching": "Buscando señal…",
-      "weak": "Señal débil"
+      "weak": "Señal débil",
+      "permissionDenied": "Acceso a ubicación denegado",
+      "unsupported": "Ubicación no disponible"
     },
     "offlineNotice": "Estás sin conexión — este viaje se está guardando en tu dispositivo y se sincronizará automáticamente.",
+    "webLimitationNotice": "El seguimiento funciona mientras esta pestaña está abierta — se pausa si cambias de pestaña, bloqueas la pantalla o tu dispositivo entra en reposo. Para un seguimiento confiable en segundo plano, usa la app móvil de DriveWise.",
+    "fields": {
+      "vehicle": "Vehículo",
+      "purpose": "Propósito"
+    },
+    "noVehicle": "Sin vehículo",
+    "resumedAfterInterruption": "Recuperamos un viaje que se interrumpió — reanúdalo cuando estés listo.",
     "discardTrip": "Descartar viaje",
+    "discardTripConfirm": {
+      "title": "¿Descartar este viaje?",
+      "description": "Este viaje todavía no se ha guardado. Descartarlo elimina la ruta registrada y no se puede deshacer."
+    },
     "endTripConfirm": {
       "title": "¿Terminar este viaje?",
       "description": "Lo guardaremos como viaje completado usando la distancia y el tiempo registrados hasta ahora."

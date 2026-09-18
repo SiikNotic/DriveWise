@@ -51,7 +51,8 @@ other.
 ## Data: local-first, sync when online
 
 The mobile tracking layer treats the network as unreliable by default, not
-as an edge case:
+as an edge case — see [Mileage Tracking](#mileage-tracking) for the full
+architecture. In short:
 
 1. GPS samples and computed trip distance/duration are written to on-device
    storage first — this never depends on connectivity.
@@ -60,22 +61,164 @@ as an edge case:
 3. When online, a sync engine pushes pending rows to Supabase, which upserts
    on `(user_id, client_id)`. A dropped connection and retry re-sends the
    same envelope and lands on the same row — no duplicates.
-4. Local rows are marked synced once Supabase confirms the write, and are
-   kept locally for a retention window afterward rather than deleted
-   immediately, in case the confirmation itself was what got lost.
+4. Local rows are marked synced once Supabase confirms the write, and stay
+   in local storage afterward rather than being deleted immediately.
 
-The envelope/status types for this are in
-`packages/shared/src/types/sync.ts` (`SyncEnvelope`, `SyncQueueItem`,
-`SyncStatus`). `apps/web` doesn't need this queue today (it doesn't record
-GPS), but it's shared so the mobile app doesn't invent its own contract
-later.
+The envelope/status types for the app-wide sync contract (vehicles,
+settings, expenses, offers) are in `packages/shared/src/types/sync.ts`
+(`SyncEnvelope`, `SyncQueueItem`, `SyncStatus`). Trip recording has its own,
+more detailed local-recording model, since it's the one entity with a live
+in-progress state — see `packages/shared/src/types/trip-recording.ts`.
 
 ### What stays local vs. what reaches Supabase
 
-- **Local only, unless a driver opts in**: raw high-frequency GPS points.
-- **Always synced (once online)**: vehicles, `user_settings`, trips
-  (aggregated distance/duration + a simplified route polyline), delivery
-  offers, expenses. See `supabase/migrations/` for the exact columns.
+- **Always local, never synced**: per-point retry/backoff bookkeeping (how
+  many attempts, when to retry next) — meaningless once off the recording
+  device. See `StoredTrip` vs. `Trip`.
+- **Synced once a trip is completed**: the trip's aggregated distance,
+  duration, and (currently) every raw GPS point recorded for it. The
+  schema keeps points in their own table specifically so a future
+  driver-facing privacy toggle could stop syncing them without a schema
+  change — see the comment on `trip_points` in the init migration.
+- **Always synced (once online) for everything else**: vehicles,
+  `user_settings`, delivery offers, expenses. See `supabase/migrations/`
+  for the exact columns.
+
+## Mileage Tracking
+
+The core feature: local-first GPS trip recording, built as a stack of
+platform-agnostic abstractions so a native Android/iOS client can reuse the
+entire recording/filtering/sync engine and only supply its own GPS and
+storage implementations.
+
+### The abstraction layers, and why they're split this way
+
+```
+apps/web (platform-specific)          packages/shared (platform-agnostic)
+──────────────────────────            ────────────────────────────────────
+BrowserLocationProvider       impl →  LocationProvider (interface)
+IndexedDbTripStore            impl →  TripStore (interface)
+SupabaseSyncTransport         impl →  SyncTransport (interface)
+useTripRecorder (React hook)  wires → TripRecorder, SyncQueue (engine)
+```
+
+- **`LocationProvider`** (`types/gps.ts`) — "however this platform gets GPS
+  fixes." `BrowserLocationProvider` wraps `navigator.geolocation`; a native
+  client wraps its own SDK. Nothing above this interface knows which one is
+  running.
+- **`TripStore`** (`types/trip-recording.ts`) — "however this platform
+  persists trips/points on-device." `IndexedDbTripStore` is the web
+  implementation; a native client would implement the same interface over
+  SQLite. The one invariant every implementation must uphold: a row is
+  never deleted (except an explicit driver-initiated discard) until
+  `markSyncStatus` records "synced" — that's what "local data survives
+  until sync is confirmed" means in code.
+- **`SyncTransport`** (`tracking/sync-queue.ts`) — "however this platform
+  talks to the backend." `SupabaseSyncTransport` is the web implementation.
+- **`TripRecorder`** and **`SyncQueue`** (`tracking/`) — the actual engine,
+  built only against the three interfaces above. This is the one piece of
+  code a native client reuses completely unchanged.
+
+Changing the GPS provider, the local storage backend, or the sync
+transport later is "write one new class," not "rewrite the app" — that
+was the explicit design goal.
+
+### Recording flow
+
+`Start Tracking` → `TripRecorder.start()`:
+1. Requests location permission, creates a `StoredTrip` (`status:
+   "tracking"`) and writes it to `TripStore` immediately.
+2. Opens the GPS watch. Every incoming fix goes through two independent
+   checks before anything else happens to it:
+
+**1. Is the fix trustworthy?** (`calculations/gps-filter.ts`)
+   - **Insufficient accuracy** → rejected if the reported uncertainty
+     radius exceeds 50m (a fix with no reported accuracy is let through,
+     rather than assuming every provider reports it).
+   - **Absurd GPS jump** → rejected if the implied speed from the last
+     accepted fix exceeds ~134 mph, or the fix's timestamp isn't after the
+     previous one. This catches multipath/urban-canyon teleports without
+     needing a map or road network.
+
+**2. Is a trustworthy fix worth writing to storage?** (same file) — this is
+the actual battery/storage/point-count control, since a live GPS watch can
+emit far more fixes than are useful to keep:
+   - Written once the vehicle has moved ≥20m from the last written point,
+     **or** every ≥30s regardless (a heartbeat, so idle time like a red
+     light still contributes to duration), **or** on a sharp turn (≥30°
+     bearing change), so route shape isn't lost between sparse points.
+   - After 3 consecutive heartbeat-only points with no real movement,
+     heartbeats stop until the vehicle actually moves again — a long stop
+     (waiting on a pickup) doesn't accumulate points forever.
+   - Every trustworthy fix still updates the live distance/duration and
+     the "last known position" used for the next fix's plausibility check,
+     whether or not it gets written to storage.
+
+Distance accumulates via the Haversine formula over *accepted* fixes only
+(`calculations/distance.ts`); duration is wall-clock time since the trip's
+last resume, minus time spent paused — never a naive incrementing counter,
+so it stays correct across tab backgrounding.
+
+**Pause** stops the GPS watch (saves battery) and freezes the duration
+clock. **Resume** restarts both from exactly where they left off. **Stop**
+finalizes the trip (`status: "completed"`, `syncStatus: "pending_sync"`)
+— a trip is never pushed to Supabase before this point, so an in-progress
+recording never has partial/changing data mid-sync.
+
+### Tolerance to real-world interruptions
+
+- **Internet loss**: recording never touches the network — GPS, filtering,
+  and storage all happen purely on-device. Sync just waits.
+- **Temporary GPS loss / a bad fix**: surfaced as a status (`searching` /
+  `weak`), never auto-pauses or auto-stops the trip. Only the driver's own
+  pause/stop does that.
+- **Unexpected close / suspended app**: every state change (start, pause,
+  resume, a captured point) is written to `TripStore` before that call
+  resolves — there is no in-memory-only state to lose. On relaunch,
+  `TripRecorder.recoverActiveTrip()` finds anything left `"tracking"` and
+  demotes it to `"paused"` rather than silently resuming GPS collection
+  after an unknown gap (how long was the app closed? did the vehicle
+  move?) — the driver sees it and explicitly taps Resume, which reopens
+  the GPS watch cleanly from now.
+- **Duplicate sync after a retry**: every trip and point carries a
+  `client_id` generated on-device at creation; Supabase upserts on
+  `(user_id, client_id)`, so re-pushing the same data after a dropped
+  connection is a no-op, not a duplicate. `SyncQueue` also tracks its own
+  retry count and an exponential backoff window per trip (capped at 15
+  min) so a failing sync doesn't hammer the server.
+
+### What this is honestly not
+
+This is a **web tab**, not a background service. Browsers throttle or
+fully suspend `watchPosition` once a tab is backgrounded, the screen
+locks, or the OS sleeps the device — no web API changes that on any
+platform. `BrowserLocationProvider`'s own doc comment says this explicitly,
+and the tracking UI shows the same disclaimer while recording. Reliable
+background tracking (recording a trip while the phone is locked in a
+driver's pocket) requires a native Android/iOS app with the platform's own
+background-location APIs (a foreground service +
+`ACCESS_BACKGROUND_LOCATION` on Android; "Always" authorization + a
+background mode entitlement on iOS) — which is exactly what the
+`LocationProvider` abstraction above is designed to plug in later, without
+touching `TripRecorder`, `SyncQueue`, or any UI built on top of them.
+
+### Verified
+
+`pnpm typecheck`/`lint`/`build` all pass. The recording/filtering/sync
+engine was exercised directly (compiling `packages/shared` and running it
+under Node against fake `LocationProvider`/`TripStore`/`SyncTransport`
+implementations that script a full trip): a low-accuracy fix and an
+implausible GPS jump are both rejected without moving the odometer; a slow
+drift of many small real fixes produces measurably fewer stored points
+than raw fixes (proving the capture throttling); pause freezes duration
+and stops the GPS watch, resume continues both correctly; stop finalizes
+the trip as `completed`/`pending_sync`; and `SyncQueue` correctly marks a
+failed push `sync_error` with a backoff window, skips retrying before that
+window elapses, succeeds on retry, and never re-pushes an already-synced
+trip. What wasn't tested here, and can't be from this sandbox: an actual
+browser GPS permission prompt and real `watchPosition` fixes, and the
+authenticated dashboard UI end-to-end — the same live-browser limitation
+noted under Authentication above.
 
 ## Supabase
 
@@ -379,13 +522,17 @@ this is a checklist for whoever connects the GitHub repo to Vercel.
 - Full Vehicle Profile CRUD (see [Vehicle Profile](#vehicle-profile)): add/
   edit/delete/list/view vehicles, an operating cost-per-mile breakdown, and
   a per-user active-vehicle selection.
+- Full Mileage Tracking engine (see [Mileage Tracking](#mileage-tracking)):
+  local-first GPS recording with start/pause/resume/stop, GPS filtering and
+  battery/storage-efficient point capture, crash/suspend recovery, and an
+  idempotent sync queue — plus the Dashboard UI that drives it.
 - Settings page: profile fields, language switcher, theme switcher.
+- A live deployment on Vercel (see [Deploying](#deploying-github--vercel)).
 
 **Planned, not yet built:**
 - The actual `apps/mobile` Expo app (architecture documented in
-  `apps/mobile/README.md`).
-- Trip list/detail, live GPS tracking UI, expense CRUD, delivery offer
-  analyzer form, tax mileage reports, performance analytics, and a real
-  Dashboard (currently a placeholder).
-- A Vercel deployment (requires credentials only the project owner can
-  create).
+  `apps/mobile/README.md`) — the native `LocationProvider`/`TripStore`
+  implementations Mileage Tracking's abstractions are designed for.
+- Trip list/detail (browsing past trips — recording them is implemented),
+  expense CRUD, delivery offer analyzer form, tax mileage reports,
+  performance analytics.
