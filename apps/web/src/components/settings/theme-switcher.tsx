@@ -19,7 +19,13 @@ export function ThemeSwitcher() {
   // Avoid rendering the (system-resolved) active state before the client
   // has mounted, since the server can't know the OS preference.
   const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
+  useEffect(() => {
+    // Standard next-themes hydration guard: this one-time mount flag is not
+    // synchronizing with an external system's changing value, so the extra
+    // render is an accepted tradeoff (the alternative is an SSR/CSR mismatch).
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setMounted(true);
+  }, []);
 
   return (
     <div className="flex flex-wrap gap-2" aria-label={t("label")}>

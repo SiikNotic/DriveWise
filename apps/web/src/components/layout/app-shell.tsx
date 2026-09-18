@@ -4,6 +4,7 @@ import { Link } from "@/i18n/navigation";
 import { PrimaryNav } from "@/components/layout/primary-nav";
 import { MobileTabBar } from "@/components/layout/mobile-tab-bar";
 import { SyncStatusBadge } from "@/components/layout/sync-status-badge";
+import { SignOutButton } from "@/components/layout/sign-out-button";
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const t = useTranslations();
@@ -18,6 +19,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <div className="flex items-center gap-1">
             <PrimaryNav />
             <SyncStatusBadge />
+            <SignOutButton />
           </div>
         </div>
       </header>

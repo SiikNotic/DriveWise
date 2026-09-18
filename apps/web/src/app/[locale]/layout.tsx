@@ -5,7 +5,6 @@ import { notFound } from "next/navigation";
 import { Geist, Geist_Mono } from "next/font/google";
 
 import { routing } from "@/i18n/routing";
-import { AppShell } from "@/components/layout/app-shell";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
 import "../globals.css";
@@ -62,7 +61,7 @@ export default async function LocaleLayout(props: {
           disableTransitionOnChange
         >
           <NextIntlClientProvider>
-            <AppShell>{props.children}</AppShell>
+            {props.children}
             <Toaster position="top-center" />
           </NextIntlClientProvider>
         </ThemeProvider>

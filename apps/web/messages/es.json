@@ -87,26 +87,47 @@
       "title": "Iniciar sesión",
       "subtitle": "Bienvenido de nuevo — inicia sesión para seguir registrando tus ganancias.",
       "submit": "Iniciar sesión",
+      "submitting": "Iniciando sesión…",
       "forgotPassword": "¿Olvidaste tu contraseña?",
       "noAccount": "¿No tienes cuenta?",
-      "createAccount": "Crear cuenta"
+      "createAccount": "Crear cuenta",
+      "confirmFailed": "Ese enlace no es válido o ya expiró. Por favor intenta de nuevo."
     },
     "signUp": {
       "title": "Crea tu cuenta",
       "subtitle": "Empieza a registrar tus millas y ganancias en minutos.",
       "submit": "Crear cuenta",
+      "submitting": "Creando cuenta…",
       "haveAccount": "¿Ya tienes cuenta?",
-      "signIn": "Inicia sesión"
+      "signIn": "Inicia sesión",
+      "checkEmailTitle": "Revisa tu correo",
+      "checkEmailDescription": "Enviamos un enlace de confirmación a {email}. Haz clic en él para activar tu cuenta."
     },
     "resetPassword": {
       "title": "Restablecer tu contraseña",
       "subtitle": "Te enviaremos un enlace para restablecerla.",
-      "submit": "Enviar enlace"
+      "submit": "Enviar enlace",
+      "submitting": "Enviando enlace…",
+      "checkEmailTitle": "Revisa tu correo",
+      "checkEmailDescription": "Si existe una cuenta con {email}, te enviamos un enlace para restablecer la contraseña.",
+      "backToSignIn": "Volver a iniciar sesión"
+    },
+    "updatePassword": {
+      "title": "Elige una nueva contraseña",
+      "subtitle": "Ingresa una nueva contraseña para tu cuenta.",
+      "submit": "Actualizar contraseña",
+      "submitting": "Actualizando contraseña…"
     },
     "fields": {
+      "firstName": "Nombre",
+      "lastName": "Apellido",
       "email": "Correo electrónico",
+      "phone": "Teléfono",
       "password": "Contraseña",
-      "confirmPassword": "Confirmar contraseña"
+      "newPassword": "Nueva contraseña",
+      "confirmPassword": "Confirmar contraseña",
+      "country": "País",
+      "state": "Estado"
     },
     "signOut": "Cerrar sesión",
     "signOutConfirm": "¿Seguro que quieres cerrar sesión?"
@@ -356,6 +377,20 @@
     "account": {
       "title": "Cuenta",
       "description": "Administra tu inicio de sesión."
+    },
+    "profile": {
+      "title": "Perfil",
+      "description": "Tu nombre, teléfono y ubicación.",
+      "email": "Correo electrónico",
+      "emailNote": "Contacta a soporte para cambiar tu correo.",
+      "save": "Guardar cambios",
+      "saving": "Guardando…",
+      "countryPlaceholder": "Selecciona un país",
+      "statePlaceholder": "Selecciona un estado",
+      "countries": {
+        "US": "Estados Unidos",
+        "OTHER": "Otro"
+      }
     }
   },
   "units": {

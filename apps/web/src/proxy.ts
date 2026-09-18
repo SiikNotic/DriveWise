@@ -19,5 +19,10 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!api|trpc|_next|_vercel|.*\\..*).*)"],
+  // /auth/* (email confirmation + sign-out route handlers) is excluded:
+  // it must never get a locale prefix rewritten onto it, since the exact
+  // path is what's registered as the Supabase email redirect URL. Those
+  // route handlers create their own Supabase client and manage the
+  // session directly, so skipping the proxy's session refresh for them is fine.
+  matcher: ["/((?!api|trpc|_next|_vercel|auth|.*\\..*).*)"],
 };

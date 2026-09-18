@@ -10,6 +10,8 @@ type Timestamp = string;
 
 export interface Database {
   public: {
+    Views: Record<string, never>;
+    Functions: Record<string, never>;
     Tables: {
       vehicles: {
         Row: {
@@ -39,6 +41,7 @@ export interface Database {
           updated_at?: Timestamp;
         };
         Update: Partial<Database["public"]["Tables"]["vehicles"]["Insert"]>;
+        Relationships: [];
       };
       user_settings: {
         Row: {
@@ -53,6 +56,24 @@ export interface Database {
           Omit<Database["public"]["Tables"]["user_settings"]["Row"], "user_id">
         > & { user_id: string };
         Update: Partial<Database["public"]["Tables"]["user_settings"]["Insert"]>;
+        Relationships: [];
+      };
+      profiles: {
+        Row: {
+          user_id: string;
+          first_name: string | null;
+          last_name: string | null;
+          phone: string | null;
+          country: string | null;
+          state: string | null;
+          created_at: Timestamp;
+          updated_at: Timestamp;
+        };
+        Insert: Partial<
+          Omit<Database["public"]["Tables"]["profiles"]["Row"], "user_id">
+        > & { user_id: string };
+        Update: Partial<Database["public"]["Tables"]["profiles"]["Insert"]>;
+        Relationships: [];
       };
       trips: {
         Row: {
@@ -106,6 +127,7 @@ export interface Database {
           updated_at?: Timestamp;
         };
         Update: Partial<Database["public"]["Tables"]["trips"]["Insert"]>;
+        Relationships: [];
       };
       trip_points: {
         Row: {
@@ -125,6 +147,7 @@ export interface Database {
           id?: string;
         };
         Update: Partial<Database["public"]["Tables"]["trip_points"]["Insert"]>;
+        Relationships: [];
       };
       delivery_offers: {
         Row: {
@@ -150,6 +173,7 @@ export interface Database {
           created_at?: Timestamp;
         };
         Update: Partial<Database["public"]["Tables"]["delivery_offers"]["Insert"]>;
+        Relationships: [];
       };
       expenses: {
         Row: {
@@ -184,6 +208,7 @@ export interface Database {
           updated_at?: Timestamp;
         };
         Update: Partial<Database["public"]["Tables"]["expenses"]["Insert"]>;
+        Relationships: [];
       };
     };
   };

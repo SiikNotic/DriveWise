@@ -79,6 +79,12 @@ later.
 
 ## Supabase
 
+A project (`drivewise`, `us-east-1`) is provisioned under the connected
+Supabase organization, with every migration below applied and security
+advisors clean (`get_advisors` reports zero findings — see git history for
+the two rounds of hardening: pinning `search_path` and revoking public
+`EXECUTE` on the `SECURITY DEFINER` trigger function).
+
 - `supabase/migrations/20260918021136_init_schema.sql` — `vehicles`,
   `user_settings`, `trips`, `trip_points`, `delivery_offers`, `expenses`.
   Every table has RLS enabled with owner-only policies
@@ -88,17 +94,110 @@ later.
 - `supabase/migrations/20260918021257_storage_receipts.sql` — a private
   `receipts` Storage bucket (for expense photos), with owner-scoped
   policies keyed on the file path's `<user_id>/...` prefix.
+- `supabase/migrations/20260918061415_add_profiles.sql` — `profiles`
+  (first/last name, phone, country, state — email and preferred language
+  are not duplicated here; email lives in `auth.users`, preferred language
+  is `user_settings.language`), RLS owner-only, and the signup trigger
+  extended to seed it from `auth.signUp`'s `options.data`.
+- `supabase/migrations/20260918061506_harden_functions.sql` +
+  `20260918061548_fk_indexes.sql` — advisor-driven hardening (pinned
+  `search_path`, revoked public `EXECUTE`) and missing FK indexes.
 - `packages/shared/src/types/database.ts` — hand-written `Database` type
-  matching the migrations above. Once a real project exists, regenerate it
-  with `npx supabase gen types typescript --local` (or `--project-id`) and
+  matching the migrations above. Regenerate the authoritative version with
+  `npx supabase gen types typescript --project-id bfuxkvarriuidrsbjjig` and
   diff against this file rather than letting them drift apart.
-- No project is provisioned and no credentials are committed anywhere in
-  this repo. `apps/web/.env.example` lists the two client-side env vars
-  (`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`) —
-  copy it to `.env.local` and fill in your own project's values. Until
-  those are set, `apps/web` still runs; it just skips the Supabase session
-  refresh in `proxy.ts` (see the guard in
-  `apps/web/src/lib/supabase/proxy.ts`).
+- No credentials are committed anywhere in this repo.
+  `apps/web/.env.example` lists the two client-side env vars
+  (`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`); the
+  real values are in `apps/web/.env.local` (gitignored). Until they're set,
+  `apps/web` still runs; it just skips the Supabase session refresh in
+  `proxy.ts` (see the guard in `apps/web/src/lib/supabase/proxy.ts`).
+
+## Authentication
+
+Supabase Auth, via `@supabase/ssr` (browser/server/proxy clients already
+described above). Sign up, login, logout, password recovery, session
+persistence, and a per-user profile are all implemented.
+
+- **Sign up / login / logout**: `apps/web/src/lib/auth/actions.ts` (Server
+  Actions) + `apps/web/src/app/auth/signout/route.ts` (a POST route
+  handler, per Supabase's current documented pattern — logout is a plain
+  HTML form post, not a Server Action). Passwords are never touched by our
+  code beyond passing them straight to `supabase.auth.signUp` /
+  `signInWithPassword` over TLS — Supabase hashes and stores them; nothing
+  here stores or logs a password.
+- **Password recovery / reset**: `requestPasswordResetAction` calls
+  `resetPasswordForEmail` and always reports success either way (never
+  reveals whether an address has an account). The reset link lands on
+  `apps/web/src/app/auth/confirm/route.ts`, which verifies the token
+  (`supabase.auth.verifyOtp`) and redirects to `/reset-password`, where
+  `updateUser({ password })` sets the new one using the session that
+  `verifyOtp` just established.
+- **Required one-time Supabase Dashboard step**: this repo's tooling can
+  create the project, run migrations, and check advisors, but Auth email
+  templates are dashboard/Management-API-only config with no MCP tool
+  exposed for it. Supabase's default templates use `{{ .ConfirmationURL }}`,
+  which does not hit `/auth/confirm` — under **Authentication → Email
+  Templates** in the dashboard, change:
+  - **Confirm signup** → `{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=email&next={{ .RedirectTo }}`
+  - **Reset Password** → `{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=recovery&next={{ .RedirectTo }}`
+
+  Also confirm **Authentication → URL Configuration → Redirect URLs**
+  allows your dev/prod origins (e.g. `http://localhost:3000/**`).
+- **Session persistence**: cookie-based via `@supabase/ssr`, refreshed on
+  every request by `proxy.ts` (`supabase.auth.getClaims()` — never
+  `getSession()` server-side, per Supabase's current guidance on trusting
+  the embedded user object).
+- **Protected routes**: `apps/web/src/app/[locale]/(app)/layout.tsx`
+  redirects to `/login` when there's no session; the inverse guard on
+  `apps/web/src/app/[locale]/(auth)/layout.tsx` redirects a signed-in
+  visitor away from login/sign-up. This is a UX convenience, not the
+  security boundary — RLS on the tables is what actually protects the
+  data, verified directly (two test users, cross-user reads/writes both
+  correctly rejected).
+- **Profile**: first/last name, phone, country, state (Settings page,
+  `components/settings/profile-form.tsx`), all through
+  `public.profiles`, RLS-scoped to the owner. Preferred language reuses
+  the existing `user_settings.language` (Settings' language switcher) —
+  not duplicated. Email changes aren't self-serve yet (shown read-only
+  with a note); country/state options are `packages/shared/src/constants/regions.ts`.
+
+### What's been verified, and how
+
+`pnpm typecheck`, `pnpm lint`, and `pnpm build` all pass clean for
+`@drivewise/web` and `@drivewise/shared`. Beyond that, two different layers
+were tested against the real, running app:
+
+- **HTTP-level, against a real production build** (`next build && next
+  start`, requests via `curl`): an unauthenticated request to every
+  protected route (`/`, `/settings`, `/design-system`) correctly 307s to
+  `/login`; `/login`, `/sign-up`, `/forgot-password`, and `/reset-password`
+  render fully in both `en` and `es` with no untranslated strings (this
+  caught and fixed a real bug — the country dropdown's "United States" /
+  "Other" options were hardcoded English; they're now
+  `settings.profile.countries.*` translation keys — US state names are
+  deliberately left as-is in both locales, since that's how US/PR Spanish
+  speakers actually refer to them); `POST /auth/signout` and `GET
+  /auth/confirm` (with a deliberately invalid token) both resolve to a
+  redirect rather than a crash, confirming Supabase Auth network/API
+  failures are surfaced as ordinary `{ error }` results, not uncaught
+  exceptions.
+- **Database-level, against the live Supabase project** (via SQL, see
+  below): the `handle_new_user` trigger, and RLS's owner-only isolation
+  (cross-user read/insert/update all rejected, cascading delete works).
+
+**Not testable from this sandbox**: actually clicking through sign up →
+receive email → confirm → log in → log out with a real account. This
+sandbox's outbound network policy blocks direct HTTPS to `*.supabase.co`
+(confirmed via the proxy's own diagnostics — Supabase's MCP tools still
+work because they run through Anthropic's infrastructure, not this
+sandbox's egress), so the actual Auth API calls can't be exercised
+end-to-end here. This isn't a gap in what's been checked, just in where —
+the code path, the database-level security boundary, and the rendered
+pages are all verified for real; the one thing left is a manual click-
+through once this runs somewhere with normal internet access (a deploy, or
+your own machine), plus the one-time email template change above, which
+this sandbox also can't perform.
 
 ## Internationalization (English / Español)
 

@@ -87,26 +87,47 @@
       "title": "Sign in",
       "subtitle": "Welcome back — sign in to keep tracking your earnings.",
       "submit": "Sign in",
+      "submitting": "Signing in…",
       "forgotPassword": "Forgot your password?",
       "noAccount": "Don't have an account?",
-      "createAccount": "Create account"
+      "createAccount": "Create account",
+      "confirmFailed": "That link is invalid or has expired. Please try again."
     },
     "signUp": {
       "title": "Create your account",
       "subtitle": "Start tracking miles and earnings in minutes.",
       "submit": "Create account",
+      "submitting": "Creating account…",
       "haveAccount": "Already have an account?",
-      "signIn": "Sign in"
+      "signIn": "Sign in",
+      "checkEmailTitle": "Check your email",
+      "checkEmailDescription": "We sent a confirmation link to {email}. Click it to activate your account."
     },
     "resetPassword": {
       "title": "Reset your password",
       "subtitle": "We'll email you a link to reset it.",
-      "submit": "Send reset link"
+      "submit": "Send reset link",
+      "submitting": "Sending link…",
+      "checkEmailTitle": "Check your email",
+      "checkEmailDescription": "If an account exists for {email}, we sent a link to reset the password.",
+      "backToSignIn": "Back to sign in"
+    },
+    "updatePassword": {
+      "title": "Choose a new password",
+      "subtitle": "Enter a new password for your account.",
+      "submit": "Update password",
+      "submitting": "Updating password…"
     },
     "fields": {
+      "firstName": "First name",
+      "lastName": "Last name",
       "email": "Email",
+      "phone": "Phone",
       "password": "Password",
-      "confirmPassword": "Confirm password"
+      "newPassword": "New password",
+      "confirmPassword": "Confirm password",
+      "country": "Country",
+      "state": "State"
     },
     "signOut": "Sign out",
     "signOutConfirm": "Are you sure you want to sign out?"
@@ -356,6 +377,20 @@
     "account": {
       "title": "Account",
       "description": "Manage your sign-in and session."
+    },
+    "profile": {
+      "title": "Profile",
+      "description": "Your name, phone and location.",
+      "email": "Email",
+      "emailNote": "Contact support to change your email.",
+      "save": "Save changes",
+      "saving": "Saving…",
+      "countryPlaceholder": "Select a country",
+      "statePlaceholder": "Select a state",
+      "countries": {
+        "US": "United States",
+        "OTHER": "Other"
+      }
     }
   },
   "units": {
