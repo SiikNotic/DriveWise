@@ -1,5 +1,6 @@
-import type { GigPlatform, TripPurpose, TripRecordingStatus, TripSyncStatus } from "./trip";
+import type { GigPlatform, TripPurpose, TripRecordingStatus } from "./trip";
 import type { RawGpsSample } from "./gps";
+import type { SyncableRecord, SyncableStore } from "./sync";
 
 /**
  * The trip record as it lives in local storage — a superset of what gets
@@ -9,8 +10,7 @@ import type { RawGpsSample } from "./gps";
  * (user_id, client_id)`), so a retried sync after a dropped connection
  * upserts instead of duplicating.
  */
-export interface StoredTrip {
-  clientId: string;
+export interface StoredTrip extends SyncableRecord {
   /** The server-assigned id, once known. Null until the first successful sync. */
   serverId: string | null;
   userId: string;
@@ -18,11 +18,6 @@ export interface StoredTrip {
   platform: GigPlatform | null;
   purpose: TripPurpose;
   status: TripRecordingStatus;
-  syncStatus: TripSyncStatus;
-  syncError: string | null;
-  syncRetryCount: number;
-  /** Backoff: the sync queue skips this trip until this time has passed. */
-  nextSyncAttemptAt: string | null;
   startedAt: string;
   endedAt: string | null;
   startLocation: { latitude: number; longitude: number } | null;
@@ -41,7 +36,6 @@ export interface StoredTrip {
   /** How many consecutive heartbeat-only points were written while stationary — see gps-filter.ts. */
   consecutiveStationaryHeartbeats: number;
   createdAt: string;
-  updatedAt: string;
 }
 
 export type StoredTripInit = Pick<
@@ -77,7 +71,7 @@ export interface StoredTripPoint {
  * That's what "local data survives until sync is confirmed" means in
  * practice.
  */
-export interface TripStore {
+export interface TripStore extends SyncableStore<StoredTrip> {
   createTrip(trip: StoredTrip): Promise<void>;
   updateTrip(clientId: string, patch: Partial<StoredTrip>): Promise<void>;
   getTrip(clientId: string): Promise<StoredTrip | null>;
@@ -89,18 +83,6 @@ export interface TripStore {
   getPoints(tripClientId: string): Promise<StoredTripPoint[]>;
   countPoints(tripClientId: string): Promise<number>;
 
-  /** Completed trips whose syncStatus is pending_sync or sync_error and whose backoff window has elapsed. */
-  listSyncable(userId: string, now: string): Promise<StoredTrip[]>;
   /** Every completed trip on this device, any sync status, newest first — the local half of the Trips list (see trip-source.ts), merged with whatever's already synced to Supabase. */
   listCompletedTrips(userId: string): Promise<StoredTrip[]>;
-  markSyncStatus(
-    clientId: string,
-    update: {
-      syncStatus: TripSyncStatus;
-      serverId?: string | null;
-      syncError?: string | null;
-      syncRetryCount?: number;
-      nextSyncAttemptAt?: string | null;
-    },
-  ): Promise<void>;
 }

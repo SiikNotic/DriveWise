@@ -166,7 +166,9 @@ export class TripRecorder {
       platform: input.platform ?? null,
       purpose: input.purpose,
       status: "tracking",
-      syncStatus: "pending_sync",
+      // Not sync-eligible yet — nothing to push while still being recorded.
+      // stop() flips this to "pending" once the trip is complete.
+      syncStatus: "local",
       syncError: null,
       syncRetryCount: 0,
       nextSyncAttemptAt: null,
@@ -236,7 +238,7 @@ export class TripRecorder {
     const finished: StoredTrip = {
       ...this.trip,
       status: "completed",
-      syncStatus: "pending_sync",
+      syncStatus: "pending",
       durationSeconds,
       endedAt: this.now().toISOString(),
       lastResumedAt: null,

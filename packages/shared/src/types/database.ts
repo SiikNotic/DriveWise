@@ -6,6 +6,8 @@
  * committing — this file must never drift from the migrations.
  */
 
+import type { SyncStatus } from "./sync";
+
 type Timestamp = string;
 
 export interface Database {
@@ -126,7 +128,7 @@ export interface Database {
           tips_usd: number | null;
           notes: string | null;
           status: "tracking" | "paused" | "completed";
-          sync_status: "pending_sync" | "synced" | "sync_error";
+          sync_status: SyncStatus;
           created_at: Timestamp;
           updated_at: Timestamp;
         };
@@ -221,15 +223,17 @@ export interface Database {
           description: string | null;
           receipt_storage_path: string | null;
           is_tax_deductible: boolean;
+          sync_status: SyncStatus;
           created_at: Timestamp;
           updated_at: Timestamp;
         };
         Insert: Omit<
           Database["public"]["Tables"]["expenses"]["Row"],
-          "id" | "is_tax_deductible" | "created_at" | "updated_at"
+          "id" | "is_tax_deductible" | "sync_status" | "created_at" | "updated_at"
         > & {
           id?: string;
           is_tax_deductible?: boolean;
+          sync_status?: SyncStatus;
           created_at?: Timestamp;
           updated_at?: Timestamp;
         };

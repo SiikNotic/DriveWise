@@ -1,31 +1,35 @@
-import type { StoredTrip, StoredTripPoint, TripStore } from "../types/trip-recording";
-
-export type SyncPushResult =
-  | { ok: true; serverId: string }
-  | { ok: false; error: string };
-
-export type SyncPointsResult = { ok: true } | { ok: false; error: string };
+import type { SyncableRecord, SyncableStore, SyncTransport } from "../types/sync";
 
 /**
- * Abstraction over "however this platform talks to the backend." A web
- * build implements this with the Supabase browser client; a native mobile
- * client would implement it the same way with whatever Supabase client it
- * uses there. SyncQueue depends only on this and on TripStore — never on
- * `@supabase/supabase-js` directly — so the backend/transport can change
- * without touching the queue logic.
- *
- * Both methods MUST be idempotent: SyncQueue may call either one more than
- * once for the same trip/points after a retry, and expects that to be
- * harmless (an upsert keyed on the client-generated id), never a duplicate.
+ * How long a record is allowed to sit in "syncing" before the queue treats
+ * it as abandoned (the tab that started the push closed or crashed mid-
+ * flight) and retries it. Safe to retry because every transport's push is
+ * required to be idempotent — see SyncTransport's doc comment.
  */
-export interface SyncTransport {
-  pushTrip(trip: StoredTrip): Promise<SyncPushResult>;
-  pushPoints(tripClientId: string, tripServerId: string, points: StoredTripPoint[]): Promise<SyncPointsResult>;
+export const STALE_SYNCING_MS = 2 * 60_000;
+
+/**
+ * Shared eligibility check every SyncableStore.listSyncable implementation
+ * should filter with — one definition of "still owed a sync attempt" for
+ * every entity/platform, rather than each store reimplementing the same
+ * backoff-window and stale-"syncing" logic slightly differently.
+ */
+export function isSyncEligible(
+  record: Pick<SyncableRecord, "syncStatus" | "nextSyncAttemptAt" | "updatedAt">,
+  now: string,
+): boolean {
+  if (record.syncStatus === "pending" || record.syncStatus === "failed") {
+    return !record.nextSyncAttemptAt || record.nextSyncAttemptAt <= now;
+  }
+  if (record.syncStatus === "syncing") {
+    return new Date(now).getTime() - new Date(record.updatedAt).getTime() > STALE_SYNCING_MS;
+  }
+  return false;
 }
 
-export interface SyncQueueDeps {
-  tripStore: TripStore;
-  transport: SyncTransport;
+export interface SyncQueueDeps<T extends SyncableRecord> {
+  store: SyncableStore<T>;
+  transport: SyncTransport<T>;
   isOnline: () => boolean;
   now?: () => Date;
   /** Backoff base for retry N: min(baseBackoffMs * 2^(N-1), maxBackoffMs). */
@@ -39,23 +43,18 @@ export interface SyncRunResult {
 }
 
 /**
- * Drains completed, not-yet-synced trips (and their points) to the backend.
- * Never touches a trip that's still "tracking"/"paused" — see TripRecorder:
- * a trip only becomes syncable once the driver stops it.
- *
- * Idempotency comes from `clientId`, generated on-device the moment a trip
- * or point is created (see trip-recorder.ts) and enforced server-side via
- * `unique (user_id, client_id)` — so re-pushing the same trip or point
- * after a dropped connection upserts instead of duplicating. This queue
- * only has to guarantee it eventually retries; it never has to guarantee
- * exactly-once delivery itself.
+ * Drains locally-created records to the backend for any entity type that
+ * implements SyncableRecord/SyncableStore/SyncTransport — trips and
+ * expenses share this one implementation of retry, backoff, and the
+ * local -> pending -> syncing -> synced/failed state machine, rather than
+ * each reimplementing it.
  */
-export class SyncQueue {
-  private readonly deps: Required<Omit<SyncQueueDeps, "now">> & { now: () => Date };
+export class SyncQueue<T extends SyncableRecord> {
+  private readonly deps: Required<Omit<SyncQueueDeps<T>, "now">> & { now: () => Date };
 
-  constructor(deps: SyncQueueDeps) {
+  constructor(deps: SyncQueueDeps<T>) {
     this.deps = {
-      tripStore: deps.tripStore,
+      store: deps.store,
       transport: deps.transport,
       isOnline: deps.isOnline,
       now: deps.now ?? (() => new Date()),
@@ -70,36 +69,29 @@ export class SyncQueue {
     }
 
     const nowIso = this.deps.now().toISOString();
-    const syncable = await this.deps.tripStore.listSyncable(userId, nowIso);
+    const syncable = await this.deps.store.listSyncable(userId, nowIso);
 
     let synced = 0;
     let failed = 0;
 
-    for (const trip of syncable) {
-      const tripResult = await this.deps.transport.pushTrip(trip);
-      if (!tripResult.ok) {
-        await this.recordFailure(trip, tripResult.error);
+    for (const item of syncable) {
+      // Marked "syncing" before the push starts so a second, overlapping
+      // runOnce (two tabs, or a timer firing while a slow request is still
+      // in flight) skips this record instead of dispatching it twice —
+      // belt-and-suspenders on top of the transport's own idempotent
+      // upsert, never the only thing preventing a duplicate.
+      await this.deps.store.markSyncStatus(item.clientId, { syncStatus: "syncing" });
+
+      const result = await this.deps.transport.push(item);
+      if (!result.ok) {
+        await this.recordFailure(item, result.error);
         failed += 1;
         continue;
       }
 
-      const points = await this.deps.tripStore.getPoints(trip.clientId);
-      if (points.length > 0) {
-        const pointsResult = await this.deps.transport.pushPoints(
-          trip.clientId,
-          tripResult.serverId,
-          points,
-        );
-        if (!pointsResult.ok) {
-          await this.recordFailure(trip, pointsResult.error, tripResult.serverId);
-          failed += 1;
-          continue;
-        }
-      }
-
-      await this.deps.tripStore.markSyncStatus(trip.clientId, {
+      await this.deps.store.markSyncStatus(item.clientId, {
         syncStatus: "synced",
-        serverId: tripResult.serverId,
+        serverId: result.serverId,
         syncError: null,
         syncRetryCount: 0,
         nextSyncAttemptAt: null,
@@ -110,15 +102,14 @@ export class SyncQueue {
     return { synced, failed };
   }
 
-  private async recordFailure(trip: StoredTrip, error: string, serverId?: string): Promise<void> {
-    const retryCount = trip.syncRetryCount + 1;
+  private async recordFailure(item: T, error: string): Promise<void> {
+    const retryCount = item.syncRetryCount + 1;
     const backoffMs = Math.min(
       this.deps.baseBackoffMs * 2 ** (retryCount - 1),
       this.deps.maxBackoffMs,
     );
-    await this.deps.tripStore.markSyncStatus(trip.clientId, {
-      syncStatus: "sync_error",
-      serverId: serverId ?? trip.serverId,
+    await this.deps.store.markSyncStatus(item.clientId, {
+      syncStatus: "failed",
       syncError: error,
       syncRetryCount: retryCount,
       nextSyncAttemptAt: new Date(this.deps.now().getTime() + backoffMs).toISOString(),

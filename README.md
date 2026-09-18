@@ -48,41 +48,95 @@ Both apps import `@drivewise/shared` for domain types and calculations, so a
 mile or a dollar computed on one platform is computed the same way on the
 other.
 
-## Data: local-first, sync when online
+## Offline-First Architecture
 
-The mobile tracking layer treats the network as unreliable by default, not
-as an edge case — see [Mileage Tracking](#mileage-tracking) for the full
-architecture. In short:
+The app must keep working with no internet connection at all, not just
+degrade gracefully — this governs trips (see
+[Mileage Tracking](#mileage-tracking)) and expenses (see
+[Expense Tracking](#expense-tracking)) end to end: every create/edit/delete
+for either one writes to on-device storage first and never blocks on a
+network round trip.
 
-1. GPS samples and computed trip distance/duration are written to on-device
-   storage first — this never depends on connectivity.
-2. A `client_id` (UUID, generated on-device) is attached to every
-   locally-created row, before it has ever touched the network.
-3. When online, a sync engine pushes pending rows to Supabase, which upserts
-   on `(user_id, client_id)`. A dropped connection and retry re-sends the
-   same envelope and lands on the same row — no duplicates.
-4. Local rows are marked synced once Supabase confirms the write, and stay
-   in local storage afterward rather than being deleted immediately.
+**Local database.** Each syncable domain gets its own IndexedDB database in
+the browser (`drivewise-tracking` for trips/points,
+`drivewise-expenses` for expenses), written through a small
+platform-abstraction interface (`TripStore`, `ExpenseStore` in
+`packages/shared/src/types/`) rather than talked to directly outside of one
+`IndexedDb*Store` class per domain — the same interface a native mobile
+client would implement over SQLite instead, unchanged by everything above
+it (`TripRecorder`, the forms, `SyncQueue`).
 
-The envelope/status types for the app-wide sync contract (vehicles,
-settings, expenses, offers) are in `packages/shared/src/types/sync.ts`
-(`SyncEnvelope`, `SyncQueueItem`, `SyncStatus`). Trip recording has its own,
-more detailed local-recording model, since it's the one entity with a live
-in-progress state — see `packages/shared/src/types/trip-recording.ts`.
+**Sync status — one 5-state model for every syncable record**
+(`SyncStatus` in `packages/shared/src/types/sync.ts`):
 
-### What stays local vs. what reaches Supabase
+| State | Meaning |
+| --- | --- |
+| `local` | Just created on-device; not yet queued for a sync attempt (a trip is `local` for its whole tracking/paused lifetime — nothing to push until it's complete). |
+| `pending` | Queued and eligible; waiting for connectivity or its backoff window. |
+| `syncing` | A push is in flight right now. |
+| `synced` | The server has confirmed this exact record, by `clientId`. |
+| `failed` | The last attempt errored; the queue retries it automatically once its backoff window elapses. |
 
-- **Always local, never synced**: per-point retry/backoff bookkeeping (how
-  many attempts, when to retry next) — meaningless once off the recording
-  device. See `StoredTrip` vs. `Trip`.
-- **Synced once a trip is completed**: the trip's aggregated distance,
-  duration, and (currently) every raw GPS point recorded for it. The
-  schema keeps points in their own table specifically so a future
-  driver-facing privacy toggle could stop syncing them without a schema
-  change — see the comment on `trip_points` in the init migration.
-- **Always synced (once online) for everything else**: vehicles,
-  `user_settings`, delivery offers, expenses. See `supabase/migrations/`
-  for the exact columns.
+**Sync queue.** One generic class, `SyncQueue<T>`
+(`packages/shared/src/tracking/sync-queue.ts`), implements the whole
+`local -> pending -> syncing -> synced/failed` state machine once; trips
+and expenses each supply their own `SyncableStore` (IndexedDB) and
+`SyncTransport` (`push(item)`, over the Supabase browser client) rather
+than reimplementing retry/backoff/idempotency per domain. It's drained
+immediately on mount, on a 30s interval, and whenever the browser's
+`online` event fires — from more than one place per domain (e.g. both the
+Dashboard's tracking hook and the Trips list run the trip queue), so a
+pending record doesn't wait for a specific page to be open to sync.
+
+**Retry mechanism.** A failed push is retried with exponential backoff
+(`min(baseBackoffMs * 2^(attempt-1), maxBackoffMs)`, default base 15s,
+cap 15 min) — see `SyncQueue.recordFailure`. A record stuck in `syncing`
+for more than `STALE_SYNCING_MS` (2 minutes) is treated as abandoned (the
+tab that started the push closed or crashed mid-flight) and retried too —
+safe because every transport's `push` is required to be idempotent.
+
+**Idempotency.** Every syncable record gets a `clientId` (UUID) the moment
+it's created on-device, before it has ever touched the network. The server
+table has `unique (user_id, client_id)`, and every push is a Postgres
+`upsert(..., { onConflict: "user_id,client_id" })` — pushing the same
+record twice (a genuine retry, or a reclaimed stale `syncing` state) always
+lands on the same row. This is the one mechanism the "no duplicados"
+requirement rests on; it isn't something the queue itself has to reason
+about, only rely on.
+
+**Conflict handling.** Rather than a runtime merge/CRDT algorithm, conflicts
+are prevented by construction: a record is mutated locally (IndexedDB) only
+before its first successful sync; once `synced`, every further edit or
+delete goes straight to the Server Action / Supabase row directly (see
+`trip-source.ts` and `expense-source.ts`'s dual dispatch — `syncStatus`
+alone decides which path an edit takes). There is never a local shadow copy
+drifting against a server row that's also being written from elsewhere, so
+there is no last-write-wins clock to get wrong.
+
+**No data loss.** A local row is never deleted (outside an explicit
+driver-initiated delete/discard) until `markSyncStatus` has recorded
+`"synced"` — the same invariant `TripStore`'s original doc comment states,
+now shared by `ExpenseStore` too.
+
+**What's local-only vs. synced**: retry bookkeeping (attempt count,
+backoff, last error) is meaningless once off the device that's trying to
+sync and is never sent to Supabase — a row that exists in `trips` or
+`expenses` at all is, by construction, already synced. Raw GPS points are
+the one payload that's genuinely large; they're kept in their own table
+(`trip_points`) so a future privacy toggle could stop syncing them without
+a schema change — see that table's comment in the init migration.
+Attaching a receipt photo to an expense is the one action that still
+requires connectivity (see [Expense Tracking](#expense-tracking)'s scope
+note) — the expense record itself never does.
+
+**Verified**: `packages/shared/src/tracking/sync-queue.test.ts` exercises
+the real `SyncQueue` (not a mock of it) against a fake in-memory store —
+idempotent re-runs, exponential backoff timing, backoff-window
+enforcement, and stale-`syncing` reclamation — via `pnpm test`. See
+[Live-tested: the offline scenario](#live-tested-the-offline-scenario)
+below for the actual end-to-end run of the task's own 8-step script
+(create a trip offline, close/reopen the app, sync, confirm exactly one
+Supabase row) against the live deployment, for both trips and expenses.
 
 ## Mileage Tracking
 

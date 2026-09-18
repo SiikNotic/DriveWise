@@ -35,9 +35,11 @@ import { fetchTripDetail, updateTripPurpose, deleteTripRecord, type TripDetail a
 type VehicleRow = Database["public"]["Tables"]["vehicles"]["Row"];
 
 const SYNC_TONE: Record<string, StatusTone> = {
+  local: "neutral",
+  pending: "warning",
+  syncing: "warning",
   synced: "positive",
-  pending_sync: "warning",
-  sync_error: "serious",
+  failed: "serious",
 };
 
 const PURPOSES: TripPurpose[] = ["business", "personal", "commute"];
@@ -152,9 +154,7 @@ export function TripDetail({
             {ended ? ` – ${timeFormat.format(ended)}` : ""}
           </p>
         </div>
-        <StatusBadge tone={SYNC_TONE[row.syncStatus]}>
-          {t(`syncStatus.${row.syncStatus === "synced" ? "synced" : row.syncStatus === "pending_sync" ? "pending" : "error"}`)}
-        </StatusBadge>
+        <StatusBadge tone={SYNC_TONE[row.syncStatus]}>{t(`syncStatus.${row.syncStatus}`)}</StatusBadge>
       </div>
 
       <Card>

@@ -7,6 +7,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import { routing } from "@/i18n/routing";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
+import { RegisterServiceWorker } from "@/components/pwa/register-service-worker";
 import "../globals.css";
 
 const geistSans = Geist({
@@ -63,6 +64,7 @@ export default async function LocaleLayout(props: {
           <NextIntlClientProvider>
             {props.children}
             <Toaster position="top-center" />
+            <RegisterServiceWorker />
           </NextIntlClientProvider>
         </ThemeProvider>
       </body>

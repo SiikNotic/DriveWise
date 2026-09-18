@@ -10,9 +10,11 @@
   },
   "scripts": {
     "typecheck": "tsc --noEmit",
-    "lint": "echo \"(no-op) lint runs via web app eslint\""
+    "lint": "echo \"(no-op) lint runs via web app eslint\"",
+    "test": "vitest run"
   },
   "devDependencies": {
-    "typescript": "^5.7.3"
+    "typescript": "^5.7.3",
+    "vitest": "^3.2.7"
   }
 }

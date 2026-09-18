@@ -60,7 +60,8 @@
     "minValue": "Debe ser al menos {min}.",
     "maxValue": "Debe ser como máximo {max}.",
     "passwordTooShort": "La contraseña debe tener al menos {min} caracteres.",
-    "passwordsDontMatch": "Las contraseñas no coinciden."
+    "passwordsDontMatch": "Las contraseñas no coinciden.",
+    "invalidFileType": "Ese tipo de archivo no es compatible — usa una foto JPEG, PNG, WEBP o HEIC."
   },
   "notifications": {
     "tripSynced": "Viaje sincronizado.",
@@ -255,9 +256,11 @@
       "manual": "Agregado manualmente"
     },
     "syncStatus": {
-      "synced": "Sincronizado",
+      "local": "Guardado en este dispositivo",
       "pending": "Sincronización pendiente",
-      "error": "Error de sincronización — se reintentará"
+      "syncing": "Sincronizando…",
+      "synced": "Sincronizado",
+      "failed": "Error de sincronización — se reintentará"
     },
     "route": {
       "title": "Ruta",
@@ -401,6 +404,15 @@
     "removeReceipt": "Quitar recibo",
     "receiptWillBeRemoved": "El recibo se quitará al guardar.",
     "receiptHint": "Toma una foto o sube una imagen existente.",
+    "receiptRequiresConnection": "Adjuntar un recibo requiere conexión — puedes agregarlo después editando este gasto cuando vuelvas a tener conexión.",
+    "offlineNotice": "Estás sin conexión — los nuevos gastos se guardan en este dispositivo y se sincronizarán automáticamente cuando vuelvas a tener conexión.",
+    "syncStatus": {
+      "local": "Guardado en este dispositivo",
+      "pending": "Sincronización pendiente",
+      "syncing": "Sincronizando…",
+      "synced": "Sincronizado",
+      "failed": "Error de sincronización — se reintentará"
+    },
     "fields": {
       "category": "Categoría",
       "amount": "Monto",

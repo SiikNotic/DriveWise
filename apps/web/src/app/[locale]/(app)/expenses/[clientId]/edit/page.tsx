@@ -1,26 +1,22 @@
-import { notFound } from "next/navigation";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 
 import { createClient } from "@/lib/supabase/server";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { ExpenseForm } from "@/components/expenses/expense-form";
+import { ExpenseEditView } from "@/components/expenses/expense-edit-view";
 
 export default async function EditExpensePage(props: {
-  params: Promise<{ locale: string; id: string }>;
+  params: Promise<{ locale: string; clientId: string }>;
 }) {
-  const { locale, id } = await props.params;
+  const { locale, clientId } = await props.params;
   setRequestLocale(locale);
   const t = await getTranslations("expenses");
 
   const supabase = await createClient();
-  const [{ data: expense }, { data: vehicles }] = await Promise.all([
-    supabase.from("expenses").select("*").eq("id", id).maybeSingle(),
+  const [{ data: claimsData }, { data: vehicles }] = await Promise.all([
+    supabase.auth.getClaims(),
     supabase.from("vehicles").select("id, nickname"),
   ]);
-
-  if (!expense) {
-    notFound();
-  }
+  const userId = claimsData?.claims.sub ?? "";
 
   return (
     <div className="mx-auto flex w-full max-w-xl flex-col gap-6">
@@ -34,19 +30,7 @@ export default async function EditExpensePage(props: {
           <CardDescription>{t("subtitle")}</CardDescription>
         </CardHeader>
         <CardContent>
-          <ExpenseForm
-            mode="edit"
-            expenseId={expense.id}
-            vehicles={vehicles ?? []}
-            existingReceiptPath={expense.receipt_storage_path}
-            defaultValues={{
-              amountUsd: String(expense.amount_usd),
-              incurredOn: expense.incurred_on,
-              category: expense.category,
-              vehicleId: expense.vehicle_id ?? "",
-              description: expense.description ?? "",
-            }}
-          />
+          <ExpenseEditView clientId={clientId} userId={userId} vehicles={vehicles ?? []} />
         </CardContent>
       </Card>
     </div>

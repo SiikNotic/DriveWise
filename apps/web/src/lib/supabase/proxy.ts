@@ -8,11 +8,11 @@ import type { Database } from "@drivewise/shared";
  * next-intl's routing middleware) instead of a separate NextResponse — that
  * keeps the two middlewares from clobbering each other's cookies.
  *
- * This does not yet redirect unauthenticated users: there's no login screen
- * built yet (this is architecture-phase). Route protection belongs here once
- * Supabase Auth screens exist — see the "Do not run code between
- * createServerClient and getClaims()" warning in Supabase's docs before
- * adding logic to this function.
+ * This does not redirect unauthenticated users itself — that happens in
+ * `(app)/layout.tsx`, which checks `getClaims()` again server-side and
+ * bounces to /login. This function only keeps the auth cookie fresh; see
+ * the "Do not run code between createServerClient and getClaims()" warning
+ * in Supabase's docs before adding logic here.
  */
 export async function refreshSupabaseSession(
   request: NextRequest,

@@ -60,7 +60,8 @@
     "minValue": "Must be at least {min}.",
     "maxValue": "Must be at most {max}.",
     "passwordTooShort": "Password must be at least {min} characters.",
-    "passwordsDontMatch": "Passwords don't match."
+    "passwordsDontMatch": "Passwords don't match.",
+    "invalidFileType": "That file type isn't supported — please use a JPEG, PNG, WEBP, or HEIC photo."
   },
   "notifications": {
     "tripSynced": "Trip synced.",
@@ -255,9 +256,11 @@
       "manual": "Added manually"
     },
     "syncStatus": {
-      "synced": "Synced",
+      "local": "Saved on this device",
       "pending": "Pending sync",
-      "error": "Sync error — will retry"
+      "syncing": "Syncing…",
+      "synced": "Synced",
+      "failed": "Sync failed — will retry"
     },
     "route": {
       "title": "Route",
@@ -401,6 +404,15 @@
     "removeReceipt": "Remove receipt",
     "receiptWillBeRemoved": "Receipt will be removed when you save.",
     "receiptHint": "Take a photo or upload an existing image.",
+    "receiptRequiresConnection": "Attaching a receipt requires a connection — you can add one later by editing this expense once you're back online.",
+    "offlineNotice": "You're offline — new expenses are saved on this device and will sync automatically when you're back online.",
+    "syncStatus": {
+      "local": "Saved on this device",
+      "pending": "Pending sync",
+      "syncing": "Syncing…",
+      "synced": "Synced",
+      "failed": "Sync failed — will retry"
+    },
     "fields": {
       "category": "Category",
       "amount": "Amount",

@@ -7,7 +7,7 @@ import { isExpenseCategory } from "@drivewise/shared";
 
 import { redirect } from "@/i18n/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { MAX_RECEIPT_BYTES, type ExpenseActionState } from "./types";
+import { isAllowedReceiptType, MAX_RECEIPT_BYTES, type ExpenseActionState } from "./types";
 
 const RECEIPTS_BUCKET = "receipts";
 
@@ -73,6 +73,10 @@ async function uploadReceipt(
   if (file.size > MAX_RECEIPT_BYTES) {
     const t = await getTranslations("validation");
     return { error: t("invalidNumber") };
+  }
+  if (!isAllowedReceiptType(file.type)) {
+    const t = await getTranslations("validation");
+    return { error: t("invalidFileType") };
   }
 
   const path = `${userId}/${randomUUID()}.${safeExtension(file.name)}`;

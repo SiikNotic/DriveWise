@@ -47,8 +47,8 @@ export function useTripRecorder(userId: string) {
       generateId: () => crypto.randomUUID(),
     });
     const syncQueue = new SyncQueue({
-      tripStore,
-      transport: new SupabaseSyncTransport(),
+      store: tripStore,
+      transport: new SupabaseSyncTransport(tripStore),
       isOnline: () => navigator.onLine,
     });
     return { recorder, syncQueue };

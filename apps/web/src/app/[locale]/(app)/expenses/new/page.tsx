@@ -2,7 +2,7 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 
 import { createClient } from "@/lib/supabase/server";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { ExpenseForm } from "@/components/expenses/expense-form";
+import { LocalExpenseForm } from "@/components/expenses/local-expense-form";
 
 export default async function NewExpensePage(props: {
   params: Promise<{ locale: string }>;
@@ -12,7 +12,11 @@ export default async function NewExpensePage(props: {
   const t = await getTranslations("expenses");
 
   const supabase = await createClient();
-  const { data: vehicles } = await supabase.from("vehicles").select("id, nickname");
+  const [{ data: claimsData }, { data: vehicles }] = await Promise.all([
+    supabase.auth.getClaims(),
+    supabase.from("vehicles").select("id, nickname"),
+  ]);
+  const userId = claimsData?.claims.sub ?? "";
 
   return (
     <div className="mx-auto flex w-full max-w-xl flex-col gap-6">
@@ -26,7 +30,7 @@ export default async function NewExpensePage(props: {
           <CardDescription>{t("subtitle")}</CardDescription>
         </CardHeader>
         <CardContent>
-          <ExpenseForm mode="create" vehicles={vehicles ?? []} />
+          <LocalExpenseForm mode="create" userId={userId} vehicles={vehicles ?? []} />
         </CardContent>
       </Card>
     </div>

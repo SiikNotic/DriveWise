@@ -1,4 +1,4 @@
-import type { GeoPoint, StoredTrip, TripPurpose, TripSyncStatus } from "@drivewise/shared";
+import type { GeoPoint, StoredTrip, SyncStatus, TripPurpose } from "@drivewise/shared";
 
 import { createClient } from "@/lib/supabase/client";
 import { IndexedDbTripStore } from "@/lib/tracking/indexeddb-trip-store";
@@ -24,7 +24,7 @@ export interface TripListRow {
   durationSeconds: number;
   earningsUsd: number | null;
   tipsUsd: number | null;
-  syncStatus: TripSyncStatus;
+  syncStatus: SyncStatus;
 }
 
 function storedTripToRow(trip: StoredTrip): TripListRow {
@@ -45,8 +45,8 @@ function storedTripToRow(trip: StoredTrip): TripListRow {
 
 /**
  * The complete Trips list is the union of two sources that never overlap in
- * practice: trips still only in IndexedDB (not yet synced — status
- * pending_sync/sync_error) and trips already synced to Supabase. Once the
+ * practice: trips still only in IndexedDB (not yet synced — status local/
+ * pending/syncing/failed) and trips already synced to Supabase. Once the
  * background SyncQueue (see useTripRecorder) marks a local trip "synced",
  * it drops out of the first list and shows up in the second on the next
  * fetch — no double-counting, no gap where a trip disappears.

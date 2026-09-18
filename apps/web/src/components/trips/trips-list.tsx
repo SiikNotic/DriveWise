@@ -19,15 +19,11 @@ const REFRESH_INTERVAL_MS = 30_000;
 type TabKey = "today" | "thisWeek" | "thisMonth" | "all";
 
 const SYNC_TONE: Record<TripListRow["syncStatus"], StatusTone> = {
+  local: "neutral",
+  pending: "warning",
+  syncing: "warning",
   synced: "positive",
-  pending_sync: "warning",
-  sync_error: "serious",
-};
-
-const SYNC_KEY: Record<TripListRow["syncStatus"], "synced" | "pending" | "error"> = {
-  synced: "synced",
-  pending_sync: "pending",
-  sync_error: "error",
+  failed: "serious",
 };
 
 function toLocalDateKey(date: Date): string {
@@ -79,9 +75,10 @@ export function TripsList({
     // recorded while offline shows up as "Synced" on this page the moment
     // connectivity returns, without the driver needing to revisit Dashboard
     // first — same SyncQueue/transport, just run from a second place.
+    const tripStore = new IndexedDbTripStore();
     const syncQueue = new SyncQueue({
-      tripStore: new IndexedDbTripStore(),
-      transport: new SupabaseSyncTransport(),
+      store: tripStore,
+      transport: new SupabaseSyncTransport(tripStore),
       isOnline: () => navigator.onLine,
     });
 
@@ -172,7 +169,7 @@ export function TripsList({
                           </span>
                         </div>
                         <StatusBadge tone={SYNC_TONE[row.syncStatus]}>
-                          {t(`syncStatus.${SYNC_KEY[row.syncStatus]}`)}
+                          {t(`syncStatus.${row.syncStatus}`)}
                         </StatusBadge>
                       </div>
                     </CardContent>

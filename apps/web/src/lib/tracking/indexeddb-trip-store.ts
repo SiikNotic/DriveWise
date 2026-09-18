@@ -1,4 +1,4 @@
-import type { StoredTrip, StoredTripPoint, TripStore, TripSyncStatus } from "@drivewise/shared";
+import { isSyncEligible, type StoredTrip, type StoredTripPoint, type SyncStatusUpdate, type TripStore } from "@drivewise/shared";
 
 /**
  * Web implementation of TripStore, backed by IndexedDB. This is the one
@@ -146,12 +146,7 @@ export class IndexedDbTripStore implements TripStore {
 
   async listSyncable(userId: string, now: string): Promise<StoredTrip[]> {
     const trips = await this.getTripsByUser(userId);
-    return trips.filter(
-      (trip) =>
-        trip.status === "completed" &&
-        (trip.syncStatus === "pending_sync" || trip.syncStatus === "sync_error") &&
-        (!trip.nextSyncAttemptAt || trip.nextSyncAttemptAt <= now),
-    );
+    return trips.filter((trip) => trip.status === "completed" && isSyncEligible(trip, now));
   }
 
   async listCompletedTrips(userId: string): Promise<StoredTrip[]> {
@@ -161,16 +156,7 @@ export class IndexedDbTripStore implements TripStore {
       .sort((a, b) => b.startedAt.localeCompare(a.startedAt));
   }
 
-  async markSyncStatus(
-    clientId: string,
-    update: {
-      syncStatus: TripSyncStatus;
-      serverId?: string | null;
-      syncError?: string | null;
-      syncRetryCount?: number;
-      nextSyncAttemptAt?: string | null;
-    },
-  ): Promise<void> {
+  async markSyncStatus(clientId: string, update: SyncStatusUpdate): Promise<void> {
     const patch: Partial<StoredTrip> = {
       syncStatus: update.syncStatus,
       updatedAt: new Date().toISOString(),
