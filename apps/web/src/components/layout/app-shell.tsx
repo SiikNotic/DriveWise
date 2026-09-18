@@ -10,11 +10,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const t = useTranslations();
 
   return (
-    <div className="flex min-h-full flex-col">
-      <header className="sticky top-0 z-10 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/70">
-        <div className="mx-auto flex w-full max-w-5xl items-center justify-between gap-2 px-4 py-3">
-          <Link href="/" className="text-base font-semibold tracking-tight">
-            {t("app.name")}
+    <div className="flex min-h-full flex-col bg-background">
+      <header className="sticky top-0 z-10 border-b border-border/70 bg-background/90 backdrop-blur supports-[backdrop-filter]:bg-background/75">
+        <div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-3 px-4 py-3 sm:px-6">
+          <Link href="/" className="flex items-center gap-2 text-base font-semibold tracking-tight">
+            <span className="grid size-8 place-items-center rounded-xl bg-primary text-xs font-bold text-primary-foreground shadow-sm">DW</span>
+            <span>{t("app.name")}</span>
           </Link>
           <div className="flex items-center gap-1">
             <PrimaryNav />
@@ -24,7 +25,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </div>
       </header>
       {/* Bottom padding + one safe-area unit clears the fixed mobile tab bar. */}
-      <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-6 pb-20 sm:pb-6">
+      <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-5 pb-24 sm:px-6 sm:py-8 sm:pb-8">
         {children}
       </main>
       <MobileTabBar />

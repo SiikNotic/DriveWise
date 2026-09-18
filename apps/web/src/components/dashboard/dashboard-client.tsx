@@ -29,7 +29,7 @@ export function DashboardClient({
   const handleTripCompleted = useCallback(() => setRefreshSignal((value) => value + 1), []);
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-5">
       <TrackingPanel
         userId={userId}
         vehicles={vehicles}

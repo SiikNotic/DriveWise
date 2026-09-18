@@ -73,13 +73,16 @@ export function MetricCard({
           <div className="flex items-center gap-1.5">
             {icon ? (
               <span
-                className="text-muted-foreground [&>svg]:size-4 [&>svg]:shrink-0"
+                className={cn(
+                  "[&>svg]:size-4 [&>svg]:shrink-0",
+                  size === "hero" ? "text-primary-foreground/75" : "text-muted-foreground",
+                )}
                 aria-hidden="true"
               >
                 {icon}
               </span>
             ) : null}
-            <span className="text-muted-foreground text-sm">{label}</span>
+            <span className={cn("text-sm", size === "hero" ? "text-primary-foreground/80" : "text-muted-foreground")}>{label}</span>
           </div>
           <p
             className={cn(
