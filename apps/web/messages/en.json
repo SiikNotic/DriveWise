@@ -34,6 +34,75 @@
       "label": "Distance unit",
       "mi": "Miles",
       "km": "Kilometers"
+    },
+    "appearance": {
+      "title": "Appearance",
+      "description": "Choose how DriveWise looks on this device.",
+      "theme": {
+        "label": "Theme",
+        "light": "Light",
+        "dark": "Dark",
+        "system": "System"
+      }
+    }
+  },
+  "units": {
+    "mi": "mi",
+    "hr": "hr"
+  },
+  "metrics": {
+    "netEarnings": "Net earnings",
+    "grossEarnings": "Gross earnings",
+    "miles": "Miles",
+    "costPerMile": "Cost per mile",
+    "earningsPerMile": "Earnings per mile",
+    "earningsPerHour": "Earnings per hour",
+    "vsPreviousPeriod": "vs. previous period"
+  },
+  "status": {
+    "synced": "Synced",
+    "pendingSync": "Pending sync",
+    "offline": "Offline",
+    "accepted": "Accepted",
+    "declined": "Declined",
+    "needsAttention": "Needs attention"
+  },
+  "states": {
+    "emptyTitle": "Nothing here yet",
+    "emptyDescription": "Data will show up here once it's available.",
+    "errorTitle": "Something went wrong",
+    "errorDescription": "We couldn't load this. Please try again.",
+    "retry": "Try again"
+  },
+  "designSystem": {
+    "title": "Design system",
+    "subtitle": "Tokens and reusable components for DriveWise. Reference page — not a product screen.",
+    "sections": {
+      "typography": "Typography",
+      "spacingRadius": "Spacing & radius",
+      "buttons": "Buttons",
+      "inputs": "Inputs, selects & tabs",
+      "cards": "Cards & financial KPIs",
+      "status": "Status indicators",
+      "overlays": "Dialog & toast",
+      "states": "Empty, loading & error states",
+      "charts": "Charts"
+    },
+    "toastDemo": "Show a toast",
+    "dialogDemo": {
+      "trigger": "Open dialog",
+      "title": "Delete this trip?",
+      "description": "This can't be undone. The trip and its route will be permanently removed.",
+      "cancel": "Cancel",
+      "confirm": "Delete trip"
+    },
+    "sampleEmptyState": {
+      "title": "No trips yet",
+      "description": "Trips you record will show up here once tracking starts."
+    },
+    "sampleErrorState": {
+      "title": "Couldn't load trips",
+      "description": "Check your connection and try again."
     }
   },
   "common": {

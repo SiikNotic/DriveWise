@@ -34,6 +34,75 @@
       "label": "Unidad de distancia",
       "mi": "Millas",
       "km": "Kilómetros"
+    },
+    "appearance": {
+      "title": "Apariencia",
+      "description": "Elige cómo se ve DriveWise en este dispositivo.",
+      "theme": {
+        "label": "Tema",
+        "light": "Claro",
+        "dark": "Oscuro",
+        "system": "Sistema"
+      }
+    }
+  },
+  "units": {
+    "mi": "mi",
+    "hr": "h"
+  },
+  "metrics": {
+    "netEarnings": "Ganancia neta",
+    "grossEarnings": "Ganancia bruta",
+    "miles": "Millas",
+    "costPerMile": "Costo por milla",
+    "earningsPerMile": "Ganancia por milla",
+    "earningsPerHour": "Ganancia por hora",
+    "vsPreviousPeriod": "vs. período anterior"
+  },
+  "status": {
+    "synced": "Sincronizado",
+    "pendingSync": "Sincronización pendiente",
+    "offline": "Sin conexión",
+    "accepted": "Aceptado",
+    "declined": "Rechazado",
+    "needsAttention": "Requiere atención"
+  },
+  "states": {
+    "emptyTitle": "Todavía no hay nada aquí",
+    "emptyDescription": "Los datos aparecerán aquí en cuanto estén disponibles.",
+    "errorTitle": "Algo salió mal",
+    "errorDescription": "No pudimos cargar esto. Por favor intenta de nuevo.",
+    "retry": "Reintentar"
+  },
+  "designSystem": {
+    "title": "Sistema de diseño",
+    "subtitle": "Tokens y componentes reutilizables de DriveWise. Página de referencia — no es una pantalla del producto.",
+    "sections": {
+      "typography": "Tipografía",
+      "spacingRadius": "Espaciado y radios",
+      "buttons": "Botones",
+      "inputs": "Inputs, selects y tabs",
+      "cards": "Cards y KPIs financieros",
+      "status": "Indicadores de estado",
+      "overlays": "Diálogo y toast",
+      "states": "Estados vacío, de carga y de error",
+      "charts": "Gráficos"
+    },
+    "toastDemo": "Mostrar un toast",
+    "dialogDemo": {
+      "trigger": "Abrir diálogo",
+      "title": "¿Eliminar este viaje?",
+      "description": "Esto no se puede deshacer. El viaje y su ruta se eliminarán permanentemente.",
+      "cancel": "Cancelar",
+      "confirm": "Eliminar viaje"
+    },
+    "sampleEmptyState": {
+      "title": "Todavía no hay viajes",
+      "description": "Los viajes que registres aparecerán aquí en cuanto comience el seguimiento."
+    },
+    "sampleErrorState": {
+      "title": "No se pudieron cargar los viajes",
+      "description": "Verifica tu conexión e intenta de nuevo."
     }
   },
   "common": {

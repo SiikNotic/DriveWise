@@ -10,6 +10,7 @@ import {
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { LanguageSwitcher } from "@/components/settings/language-switcher";
+import { ThemeSwitcher } from "@/components/settings/theme-switcher";
 
 export default async function SettingsPage(props: {
   params: Promise<{ locale: string }>;
@@ -39,6 +40,17 @@ export default async function SettingsPage(props: {
             {t("distanceUnit.label")}: {t("distanceUnit.mi")} /{" "}
             {t("distanceUnit.km")} — {tc("comingSoon")}
           </p>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>{t("appearance.title")}</CardTitle>
+          <CardDescription>{t("appearance.description")}</CardDescription>
+        </CardHeader>
+        <CardContent className="flex flex-col gap-4">
+          <Label>{t("appearance.theme.label")}</Label>
+          <ThemeSwitcher />
         </CardContent>
       </Card>
     </div>

@@ -112,6 +112,54 @@ choice in a cookie. Adding a third language means: add the locale to
 `apps/web/src/i18n/routing.ts`, add `messages/<locale>.json`, add it to the
 switcher — no routing or component changes.
 
+## Design system
+
+`apps/web/src/app/[locale]/design-system` is a reference page (not a product
+screen — it's not linked from the app's real navigation) showing every token
+and reusable component. Open it at `/en/design-system` once the app is
+running.
+
+**Brand direction:** premium fintech precision + automotive-dashboard
+confidence — warm graphite neutrals (never pure black/white), one amber
+accent used sparingly, tight-but-not-bubbly radii. Deliberately not a
+generic SaaS/AI-dashboard look, not an Everlance clone, not delivery-app
+branding.
+
+- **Tokens** (`apps/web/src/app/globals.css`): every color pair was checked
+  programmatically (a WCAG relative-luminance `contrast()` helper) against
+  real ratios — body text ≥16:1, semantic text colors ≥4.5:1, focus ring
+  ≥3:1 — rather than eyeballed; see the comments at the top of the file for
+  the exact numbers. The 8-hue categorical chart palette and the
+  good/warning/serious/critical status palette are a validated reference
+  palette (fixed hue order, checked for colorblind-safe separation), reused
+  rather than invented from scratch.
+- **Financial color language**: gains/losses reuse the status palette
+  (`--positive`/`--negative`) instead of ad-hoc greens/reds — a metric going
+  up isn't always "good" (cost per mile going up is bad), so
+  `MetricCard`'s `isIncreaseGood` prop decides the color, not the arrow
+  direction alone.
+- **Components added**: shadcn/ui-style primitives (`select`, `tabs`,
+  `dialog`, `tooltip`, `badge`, `skeleton`, `alert`, `sonner` toast, a
+  Recharts-based `chart`) hand-written to shadcn's conventions — `ui.shadcn.com`
+  is unreachable from this sandbox's network policy, so the CLI couldn't
+  fetch them; `npx shadcn@latest add <component>` will work normally once
+  network access allows it, against the existing `components.json`.
+- **Product components** (`apps/web/src/components/finance`,
+  `.../patterns`): `MetricCard` (the KPI tile for net/gross earnings,
+  miles, cost/earnings per mile, earnings per hour — exactly one "hero"
+  size per view per the dataviz skill's stat-tile contract), `StatusBadge`
+  (every status ships an icon *and* a label — never color alone),
+  `StateMessage` (one implementation backing both `EmptyState` and
+  `ErrorState`, since they only differ in default icon/tone),
+  `EarningsTrendChart` / `EarningsByPlatformChart` (single-series emphasis
+  vs. fixed-order categorical, per the dataviz skill's form-selection rules).
+- **Dark/light mode**: `next-themes`, toggled from Settings
+  (`ThemeSwitcher`), independently re-validated for contrast rather than an
+  automatic CSS invert.
+- **Navigation**: a top bar (tablet/desktop) and a fixed bottom tab bar
+  (phones, hidden at `sm:` and up) sharing one `NAV_ITEMS` source of truth —
+  the standard gig-driver-app pattern (thumb reach), not a hamburger menu.
+
 ## Next.js 16 note
 
 This project was scaffolded on Next.js 16, which renamed `middleware.ts` /
@@ -155,10 +203,12 @@ this is a checklist for whoever connects the GitHub repo to Vercel.
 
 **Implemented:**
 - Monorepo structure, shared package with domain types + calculations.
-- `apps/web`: Next.js + TypeScript + Tailwind + shadcn/ui (base components:
-  Button, Card, Input, Label, Separator), bilingual EN/ES routing, a
-  Dashboard placeholder and a working Settings page with a functional
-  language switcher.
+- `apps/web`: Next.js + TypeScript + Tailwind + shadcn/ui design system
+  (tokens, Button/Card/Input/Label/Select/Tabs/Dialog/Tooltip/Badge/
+  Skeleton/Alert/Toast/Chart, plus DriveWise's own MetricCard/StatusBadge/
+  StateMessage/chart components — see [Design system](#design-system)),
+  bilingual EN/ES routing, light/dark mode, a Dashboard placeholder and a
+  working Settings page (language + theme switchers).
 - Supabase schema + RLS policies + Storage bucket, validated against a
   local Postgres instance (table creation, triggers, and cross-user RLS
   isolation were all exercised manually — see migration files for details).
