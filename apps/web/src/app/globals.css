@@ -21,25 +21,25 @@
  * sub-3:1 on light by design) and must never be the sole carrier of meaning.
  */
 :root {
-  --radius: 0.5rem;
+  --radius: 0.875rem;
 
-  --background: #faf9f7;
-  --foreground: #17181a;
+  --background: #f4f7f6;
+  --foreground: #14201f;
   --card: #ffffff;
-  --card-foreground: #17181a;
+  --card-foreground: #14201f;
   --popover: #ffffff;
   --popover-foreground: #17181a;
 
   /* Brand amber ("ignition"). Deep enough for white button text at 5.06:1. */
-  --primary: #a85417;
+  --primary: #0f766e;
   --primary-foreground: #ffffff;
 
-  --secondary: #efeeea;
-  --secondary-foreground: #17181a;
-  --muted: #efeeea;
-  --muted-foreground: #6b6d72;
-  --accent: #efeeea;
-  --accent-foreground: #17181a;
+  --secondary: #e7efed;
+  --secondary-foreground: #14201f;
+  --muted: #e7efed;
+  --muted-foreground: #657371;
+  --accent: #dcece8;
+  --accent-foreground: #0f4f4a;
 
   --destructive: #b3261e;
   --destructive-foreground: #ffffff;

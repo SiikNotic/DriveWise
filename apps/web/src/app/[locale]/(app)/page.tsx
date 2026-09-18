@@ -34,10 +34,14 @@ export default async function DashboardPage(props: {
     : null;
 
   return (
-    <div className="flex flex-col gap-6">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">{t("title")}</h1>
-        <p className="text-muted-foreground text-sm">{t("subtitle")}</p>
+    <div className="flex flex-col gap-5 sm:gap-7">
+      <div className="flex items-end justify-between gap-4">
+        <div>
+          <p className="mb-2 text-xs font-semibold uppercase tracking-[0.18em] text-primary">Driver workspace</p>
+          <h1 className="text-3xl font-semibold tracking-[-0.04em] sm:text-4xl">{t("title")}</h1>
+          <p className="mt-1 text-sm text-muted-foreground">{t("subtitle")}</p>
+        </div>
+        <div className="hidden rounded-full border border-positive/20 bg-positive/10 px-3 py-1.5 text-xs font-medium text-positive sm:block">Live sync</div>
       </div>
 
       <DashboardClient
