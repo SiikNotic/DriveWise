@@ -10,8 +10,9 @@
     "vehicles": "Vehículos",
     "expenses": "Gastos",
     "analytics": "Estadísticas",
-    "reports": "Reportes de impuestos",
-    "settings": "Configuración"
+    "reports": "Reportes",
+    "settings": "Configuración",
+    "more": "Más"
   },
   "common": {
     "save": "Guardar",
@@ -394,6 +395,12 @@
     "title": "Gastos",
     "subtitle": "Registra lo que realmente cuesta manejar.",
     "addExpense": "Agregar gasto",
+    "editExpense": "Editar gasto",
+    "monthlyTotals": "Totales mensuales",
+    "categoryTotals": "Totales por categoría",
+    "removeReceipt": "Quitar recibo",
+    "receiptWillBeRemoved": "El recibo se quitará al guardar.",
+    "receiptHint": "Toma una foto o sube una imagen existente.",
     "fields": {
       "category": "Categoría",
       "amount": "Monto",
@@ -405,21 +412,20 @@
     "category": {
       "fuel": "Gasolina",
       "maintenance": "Mantenimiento",
+      "repairs": "Reparaciones",
       "insurance": "Seguro",
-      "vehiclePayment": "Pago del vehículo",
-      "phonePlan": "Plan de teléfono",
-      "supplies": "Suministros",
-      "parkingTolls": "Estacionamiento y peajes",
+      "tolls": "Peajes",
+      "parking": "Estacionamiento",
+      "car_wash": "Lavado de auto",
       "other": "Otro"
     },
-    "taxDeductible": "Deducible de impuestos",
     "empty": {
       "title": "Todavía no hay gastos",
       "description": "Registra gasolina, mantenimiento y otros costos para ver tu ganancia real."
     },
     "deleteConfirm": {
       "title": "¿Eliminar este gasto?",
-      "description": "Esto no se puede deshacer."
+      "description": "Esto no se puede deshacer. Su recibo, si tiene uno, también se eliminará."
     }
   },
   "analytics": {
@@ -459,17 +465,51 @@
     }
   },
   "reports": {
-    "title": "Reportes de impuestos",
-    "subtitle": "Reportes de millaje listos para la temporada de impuestos.",
-    "selectYear": "Año fiscal",
-    "standardMileageRate": "Tasa estándar de millaje",
-    "totalBusinessMiles": "Total de millas de trabajo",
-    "totalDeduction": "Deducción total",
+    "title": "Reportes",
+    "subtitle": "Reportes de millaje, gastos y ganancias para cualquier rango de fechas.",
+    "tabs": {
+      "mileage": "Reporte de millaje",
+      "expense": "Reporte de gastos",
+      "earnings": "Reporte de ganancias"
+    },
+    "filters": {
+      "title": "Filtros",
+      "startDate": "Desde",
+      "endDate": "Hasta",
+      "vehicle": "Vehículo",
+      "allVehicles": "Todos los vehículos",
+      "purpose": "Tipo de viaje",
+      "allPurposes": "Todos"
+    },
+    "summary": {
+      "businessMiles": "Total de millas de trabajo",
+      "personalMiles": "Total de millas personales",
+      "commuteMiles": "Total de millas de traslado",
+      "totalExpenses": "Gastos totales",
+      "vehicleOperatingCost": "Costo operativo total del vehículo",
+      "grossEarnings": "Ganancia bruta",
+      "netEarnings": "Ganancia neta"
+    },
+    "mileageReference": {
+      "title": "Cálculo de referencia",
+      "description": "Usando tu tasa estándar de millaje configurada de {rate} por milla: {amount}.",
+      "disclaimer": "Esto es una referencia informativa, no asesoramiento fiscal. Las reglas de millaje y deducciones varían según la jurisdicción — verifica lo que aplica a tu caso antes de presentar cualquier declaración."
+    },
+    "columns": {
+      "date": "Fecha",
+      "vehicle": "Vehículo",
+      "purpose": "Tipo de viaje",
+      "distance": "Distancia",
+      "duration": "Duración",
+      "category": "Categoría",
+      "amount": "Monto",
+      "description": "Descripción",
+      "grossPay": "Pago bruto"
+    },
     "exportCsv": "Exportar CSV",
-    "exportPdf": "Exportar PDF",
     "empty": {
-      "title": "Todavía no hay nada que reportar",
-      "description": "Registra viajes de trabajo para generar tu reporte de millaje."
+      "title": "No hay nada que reportar en este rango",
+      "description": "Ajusta tus filtros, o registra más viajes y gastos."
     }
   },
   "settings": {

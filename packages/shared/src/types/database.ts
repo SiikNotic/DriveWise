@@ -210,11 +210,11 @@ export interface Database {
           category:
             | "fuel"
             | "maintenance"
+            | "repairs"
             | "insurance"
-            | "vehicle_payment"
-            | "phone_plan"
-            | "supplies"
-            | "parking_tolls"
+            | "tolls"
+            | "parking"
+            | "car_wash"
             | "other";
           amount_usd: number;
           incurred_on: string;

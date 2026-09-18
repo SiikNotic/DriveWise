@@ -389,6 +389,104 @@ trip/expense fixtures before wiring into the UI; typecheck/lint/build
 clean; `/analytics` re-checked against a production build alongside every
 other `(app)` route.
 
+## Expense Tracking
+
+Fuel, maintenance, repairs, insurance, tolls, parking, car wash, and other
+driving costs — a fixed initial taxonomy of 8 categories
+(`ExpenseCategory` in `packages/shared/src/types/expense.ts`), matching
+what the task specified rather than the broader set an earlier turn had
+scaffolded (`vehicle_payment`/`phone_plan`/`supplies`/`parking_tolls` were
+dropped, `repairs`/`tolls`/`parking`/`car_wash` added) — a clean migration
+since no Expense CRUD UI had ever shipped against the old values.
+
+- **Server-rendered CRUD** (`/expenses`, `/expenses/new`, `/expenses/[id]/edit`),
+  the same pattern as Vehicle Profile — unlike Trips, an expense has no
+  offline/local-first recording concern (it's entered after the fact, not
+  captured live by a GPS engine), so there's no IndexedDB layer here.
+- **Receipts use Supabase Storage's private `receipts` bucket**, which
+  already existed from the very first migration (`20260918021257_storage_receipts.sql`)
+  with exactly the RLS this feature needed: every object's path is
+  `<user_id>/<filename>`, and `select`/`insert`/`update`/`delete` policies
+  all check `(storage.foldername(name))[1] = auth.uid()`. **A user
+  cannot access another user's receipts** — enforced by Postgres RLS on
+  `storage.objects` itself, not by application code that could have a
+  bug. `getReceiptSignedUrlAction` adds a second, defense-in-depth check
+  (the path's own prefix must match the caller's `uid`) before ever asking
+  Storage for a signed URL, but the real guarantee is the RLS policy.
+- **"Tomar o subir recibos"**: the receipt `<input type="file">` sets
+  `accept="image/*"` and `capture="environment"` — on a phone browser this
+  opens the rear camera directly, while still letting the driver pick an
+  existing photo instead. No native camera API or `apps/mobile` code was
+  needed for this on web.
+- **Monthly totals and category totals** are computed server-side from the
+  same fetched expense list the history view already renders — no separate
+  aggregation endpoint, since expense volume per driver is small enough
+  that summing in the page component is simply the right amount of
+  engineering.
+- **`is_tax_deductible` is deliberately not exposed** in the form, even
+  though the column exists (default `true`) from the original schema.
+  Surfacing a per-expense "is this tax deductible?" toggle would assert a
+  jurisdiction-specific tax judgment DriveWise has no basis to make — see
+  the same concern addressed more fully in [Reports](#reports).
+
+**Verified**: `get_advisors` re-run after the category migration (only the
+pre-existing, unrelated leaked-password-protection warning); typecheck/
+lint/build clean; every expense route re-checked against a production
+build.
+
+## Reports
+
+Mileage, expense, and earnings reports over any date range — filterable by
+vehicle and trip type, exportable as CSV, and explicitly **not** tax
+advice.
+
+- **One shared filtered dataset, three tabs**: date range, vehicle, and
+  trip-type (Business/Personal/Commute/All) filters apply uniformly
+  (`lib/reports/aggregate.ts`'s `filterTrips`/`filterExpenses`) before any
+  tab-specific view renders — picking "Business" correctly zeroes out
+  Personal/Commute miles in the summary rather than the summary and the
+  detail table quietly using two different filtered sets. Only the date
+  range triggers a new Supabase fetch; vehicle and trip-type narrow
+  client-side against the already-fetched range.
+- **The six requested totals** (business/personal/commute miles, total
+  expenses, total vehicle operating cost, gross/net earnings) always show
+  together regardless of which report tab is active — Mileage, Expense,
+  and Earnings differ only in which detail table and CSV export follow the
+  same summary.
+- **Vehicle operating cost is computed per-trip, from that trip's own
+  assigned vehicle** — not the currently active one. A report spanning
+  multiple vehicles needs each vehicle's real cost/mile
+  (`calculateVehicleOperatingCost`, keyed by `vehicle_id` into a lookup
+  map), the same function every other feature uses, never a second cost
+  model. It stays scoped to business trips, matching the Dashboard's and
+  Analytics' existing "vehicle cost only counts against the earnings it
+  produced" convention — one definition of vehicle cost everywhere in the
+  app, not three different ones per feature.
+- **No jurisdiction-specific tax assumptions.** The one mileage-adjacent
+  figure this feature shows — business miles × the driver's own configured
+  `standardMileageRateUsd` — is labeled "Reference calculation," not
+  "Deduction," and every place it appears carries an explicit disclaimer:
+  *"This is an informational reference, not tax advice. Mileage and
+  deduction rules vary by jurisdiction — verify what applies to you before
+  filing anything."* Nothing in this feature computes or claims a specific
+  deduction amount, an eligibility determination, or which method applies
+  in the driver's jurisdiction.
+- **Built to add a second calculation method later without restructuring**:
+  `computeMileageReference` takes an explicit `MileageReferenceMethod`
+  union (currently just `"standard_mileage_rate"`) and switches on it,
+  specifically so an `"actual_expenses"` method (business-use % × real
+  vehicle costs) can be added as a second case later — every caller
+  already passes the method explicitly rather than assuming one.
+- **CSV export**, not PDF — a plain client-side CSV builder (no library
+  dependency) exports whichever tab is currently active, scoped to the
+  same filtered rows the screen shows. No "Export PDF" was built despite
+  early i18n scaffolding suggesting one; only what actually works ships.
+
+**Verified**: `computeReportSummary` checked by hand against a constructed
+multi-vehicle, multi-purpose fixture (same rigor as Analytics'
+`computeMetrics`) before wiring into the UI; typecheck/lint/build clean;
+`/reports` re-checked against a production build.
+
 ## Delivery Offer Analyzer
 
 DriveWise's main differentiating feature: before a driver taps Accept on a
@@ -698,6 +796,13 @@ branding.
 - **Navigation**: a top bar (tablet/desktop) and a fixed bottom tab bar
   (phones, hidden at `sm:` and up) sharing one `NAV_ITEMS` source of truth —
   the standard gig-driver-app pattern (thumb reach), not a hamburger menu.
+  With eight destinations now, the phone tab bar shows only the four a
+  driver reaches for most while working (Dashboard/Trips/Offers/Vehicles,
+  `MOBILE_PRIMARY_HREFS`) plus a "More" tab that opens the rest
+  (Analytics/Expenses/Reports/Settings) in a dialog, rather than shrinking
+  eight equal-width tabs past a reliable tap target. The desktop top bar
+  still renders every item directly (`flex-wrap`, so it degrades to a
+  second line rather than overflowing on narrower tablet widths).
 
 ## Next.js 16 note
 
@@ -773,7 +878,21 @@ this is a checklist for whoever connects the GitHub repo to Vercel.
   a single collapsed verdict.
 - Analytics (see [Analytics](#analytics)): Daily/Weekly/Monthly performance
   across 11 real metrics, period-over-period comparison, and two trend
-  charts — no invented or placeholder figures anywhere in it.
+  charts — no invented or placeholder figures anywhere in it. Its "Total
+  expenses" metric now reads real data, since Expense Tracking shipped
+  after it.
+- Full Expense Tracking (see [Expense Tracking](#expense-tracking)):
+  add/edit/delete/history, monthly and category totals, and receipt
+  photos in a private Supabase Storage bucket with RLS that already
+  prevented cross-user access before this feature ever consumed it.
+- Reports (see [Reports](#reports)): Mileage/Expense/Earnings reports over
+  any date range, filterable by vehicle and trip type, exportable as CSV —
+  explicitly labeled as informational, never tax advice.
+- The Delivery Offer Analyzer (see
+  [Delivery Offer Analyzer](#delivery-offer-analyzer)): a fast, transparent,
+  multi-factor breakdown of any delivery offer against the driver's real
+  vehicle cost and their own configurable $/hour and $/mile targets — never
+  a single collapsed verdict.
 - Settings page: profile fields, language switcher, theme switcher, Offer
   Analyzer targets.
 - A live deployment on Vercel (see [Deploying](#deploying-github--vercel)).
@@ -783,9 +902,9 @@ this is a checklist for whoever connects the GitHub repo to Vercel.
   `apps/mobile/README.md`) — the native `LocationProvider`/`TripStore`
   implementations Mileage Tracking's abstractions are designed for.
 - Manually adding a trip with no GPS recording (see
-  [Trip History](#trip-history)'s scope note), expense CRUD (Analytics'
-  Total expenses legitimately reads $0.00 until this ships — see
-  [Analytics](#analytics)), an offers list/history page (analyzing and
-  recording a decision is implemented — see
-  [Delivery Offer Analyzer](#delivery-offer-analyzer)), tax mileage
-  reports.
+  [Trip History](#trip-history)'s scope note), an offers list/history page
+  (analyzing and recording a decision is implemented — see
+  [Delivery Offer Analyzer](#delivery-offer-analyzer)), PDF export for
+  Reports (CSV is implemented — see [Reports](#reports)), a second
+  mileage-reference calculation method (the system is structured for one —
+  see [Reports](#reports)).

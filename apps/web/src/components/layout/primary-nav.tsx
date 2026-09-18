@@ -12,7 +12,7 @@ export function PrimaryNav() {
   const pathname = usePathname();
 
   return (
-    <nav className="hidden items-center gap-1 sm:flex">
+    <nav className="hidden flex-wrap items-center gap-1 sm:flex">
       {NAV_ITEMS.map((item) => {
         const isActive = isNavItemActive(pathname, item.href);
         return (

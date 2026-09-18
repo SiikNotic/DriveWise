@@ -10,8 +10,9 @@
     "vehicles": "Vehicles",
     "expenses": "Expenses",
     "analytics": "Analytics",
-    "reports": "Tax Reports",
-    "settings": "Settings"
+    "reports": "Reports",
+    "settings": "Settings",
+    "more": "More"
   },
   "common": {
     "save": "Save",
@@ -394,6 +395,12 @@
     "title": "Expenses",
     "subtitle": "Track what it actually costs to drive.",
     "addExpense": "Add expense",
+    "editExpense": "Edit expense",
+    "monthlyTotals": "Monthly totals",
+    "categoryTotals": "Category totals",
+    "removeReceipt": "Remove receipt",
+    "receiptWillBeRemoved": "Receipt will be removed when you save.",
+    "receiptHint": "Take a photo or upload an existing image.",
     "fields": {
       "category": "Category",
       "amount": "Amount",
@@ -405,21 +412,20 @@
     "category": {
       "fuel": "Fuel",
       "maintenance": "Maintenance",
+      "repairs": "Repairs",
       "insurance": "Insurance",
-      "vehiclePayment": "Vehicle payment",
-      "phonePlan": "Phone plan",
-      "supplies": "Supplies",
-      "parkingTolls": "Parking & tolls",
+      "tolls": "Tolls",
+      "parking": "Parking",
+      "car_wash": "Car wash",
       "other": "Other"
     },
-    "taxDeductible": "Tax deductible",
     "empty": {
       "title": "No expenses yet",
       "description": "Log fuel, maintenance and other costs to see your real profit."
     },
     "deleteConfirm": {
       "title": "Delete this expense?",
-      "description": "This can't be undone."
+      "description": "This can't be undone. Its receipt, if any, will also be removed."
     }
   },
   "analytics": {
@@ -459,17 +465,51 @@
     }
   },
   "reports": {
-    "title": "Tax Reports",
-    "subtitle": "Mileage reports ready for tax season.",
-    "selectYear": "Tax year",
-    "standardMileageRate": "Standard mileage rate",
-    "totalBusinessMiles": "Total business miles",
-    "totalDeduction": "Total deduction",
+    "title": "Reports",
+    "subtitle": "Mileage, expense and earnings reports for any date range.",
+    "tabs": {
+      "mileage": "Mileage report",
+      "expense": "Expense report",
+      "earnings": "Earnings report"
+    },
+    "filters": {
+      "title": "Filters",
+      "startDate": "From",
+      "endDate": "To",
+      "vehicle": "Vehicle",
+      "allVehicles": "All vehicles",
+      "purpose": "Trip type",
+      "allPurposes": "All"
+    },
+    "summary": {
+      "businessMiles": "Total business miles",
+      "personalMiles": "Total personal miles",
+      "commuteMiles": "Total commute miles",
+      "totalExpenses": "Total expenses",
+      "vehicleOperatingCost": "Total vehicle operating cost",
+      "grossEarnings": "Gross earnings",
+      "netEarnings": "Net earnings"
+    },
+    "mileageReference": {
+      "title": "Reference calculation",
+      "description": "Using your configured standard mileage rate of {rate} per mile: {amount}.",
+      "disclaimer": "This is an informational reference, not tax advice. Mileage and deduction rules vary by jurisdiction — verify what applies to you before filing anything."
+    },
+    "columns": {
+      "date": "Date",
+      "vehicle": "Vehicle",
+      "purpose": "Trip type",
+      "distance": "Distance",
+      "duration": "Duration",
+      "category": "Category",
+      "amount": "Amount",
+      "description": "Description",
+      "grossPay": "Gross pay"
+    },
     "exportCsv": "Export CSV",
-    "exportPdf": "Export PDF",
     "empty": {
-      "title": "Nothing to report yet",
-      "description": "Log business trips to generate your mileage report."
+      "title": "Nothing to report for this range",
+      "description": "Adjust your filters, or log more trips and expenses."
     }
   },
   "settings": {
