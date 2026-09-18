@@ -12,26 +12,35 @@ export default async function DashboardPage(props: {
   const t = await getTranslations("dashboard");
   const tu = await getTranslations("units");
 
-  const supabase = await createClient();
-  const [{ data: claimsData }, { data: vehicles }, { data: settings }] = await Promise.all([
-    supabase.auth.getClaims(),
-    supabase.from("vehicles").select("*").order("created_at", { ascending: true }),
-    supabase.from("user_settings").select("default_vehicle_id").maybeSingle(),
-  ]);
-  const userId = claimsData?.claims.sub ?? "";
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabasePublishableKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
+  let userId = "";
+  let vehicles: { id: string; nickname: string }[] = [];
+  let activeVehicleCostPerMileUsd: number | null = null;
 
-  const activeVehicle = vehicles?.find((vehicle) => vehicle.id === settings?.default_vehicle_id) ?? null;
-  const activeVehicleCostPerMileUsd = activeVehicle
-    ? calculateVehicleOperatingCost({
-        fuelEfficiencyMpg: activeVehicle.fuel_efficiency_mpg,
-        fuelPriceUsd: activeVehicle.fuel_price_usd,
-        insuranceMonthlyCostUsd: activeVehicle.insurance_monthly_cost_usd,
-        maintenanceCostPerMileUsd: activeVehicle.maintenance_cost_per_mile_usd,
-        depreciationCostPerMileUsd: activeVehicle.depreciation_cost_per_mile_usd,
-        otherOperatingCostPerMileUsd: activeVehicle.other_operating_cost_per_mile_usd,
-        estimatedMonthlyMiles: activeVehicle.estimated_monthly_miles,
-      }).totalCostPerMileUsd
-    : null;
+  if (supabaseUrl && supabasePublishableKey) {
+    const supabase = await createClient();
+    const [{ data: claimsData }, { data: vehicleRows }, { data: settings }] = await Promise.all([
+      supabase.auth.getClaims(),
+      supabase.from("vehicles").select("*").order("created_at", { ascending: true }),
+      supabase.from("user_settings").select("default_vehicle_id").maybeSingle(),
+    ]);
+    userId = claimsData?.claims.sub ?? "";
+    vehicles = (vehicleRows ?? []).map(({ id, nickname }) => ({ id, nickname }));
+
+    const activeVehicle = vehicleRows?.find((vehicle) => vehicle.id === settings?.default_vehicle_id) ?? null;
+    activeVehicleCostPerMileUsd = activeVehicle
+      ? calculateVehicleOperatingCost({
+          fuelEfficiencyMpg: activeVehicle.fuel_efficiency_mpg,
+          fuelPriceUsd: activeVehicle.fuel_price_usd,
+          insuranceMonthlyCostUsd: activeVehicle.insurance_monthly_cost_usd,
+          maintenanceCostPerMileUsd: activeVehicle.maintenance_cost_per_mile_usd,
+          depreciationCostPerMileUsd: activeVehicle.depreciation_cost_per_mile_usd,
+          otherOperatingCostPerMileUsd: activeVehicle.other_operating_cost_per_mile_usd,
+          estimatedMonthlyMiles: activeVehicle.estimated_monthly_miles,
+        }).totalCostPerMileUsd
+      : null;
+  }
 
   return (
     <div className="flex flex-col gap-5 sm:gap-7">
@@ -46,7 +55,7 @@ export default async function DashboardPage(props: {
 
       <DashboardClient
         userId={userId}
-        vehicles={(vehicles ?? []).map(({ id, nickname }) => ({ id, nickname }))}
+        vehicles={vehicles}
         distanceUnitLabel={tu("mi")}
         hourUnitLabel={tu("hr")}
         activeVehicleCostPerMileUsd={activeVehicleCostPerMileUsd}
