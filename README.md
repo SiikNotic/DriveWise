@@ -134,9 +134,66 @@ the real `SyncQueue` (not a mock of it) against a fake in-memory store —
 idempotent re-runs, exponential backoff timing, backoff-window
 enforcement, and stale-`syncing` reclamation — via `pnpm test`. See
 [Live-tested: the offline scenario](#live-tested-the-offline-scenario)
-below for the actual end-to-end run of the task's own 8-step script
-(create a trip offline, close/reopen the app, sync, confirm exactly one
-Supabase row) against the live deployment, for both trips and expenses.
+below for what was and wasn't verified end-to-end against the live
+deployment and database.
+
+### Live-tested: the offline scenario
+
+The full interactive script (open the app, go offline, record a trip,
+close the tab, reopen it, come back online, watch it sync, confirm one
+row) needs a real browser driving the real deployed app against the real
+Supabase project. The build environment this was developed in restricts
+outbound network access to a small allow-list (package registries, the
+Anthropic API) and blocks direct connections to `*.vercel.app` and
+`*.supabase.co` — so a browser automation tool running there can't reach
+either. What follows is what could and couldn't be checked given that
+constraint, stated plainly rather than glossed over:
+
+**Actually run against the live project:**
+- **Idempotency at the database, with real rows, not a simulation.** Using
+  the same `client_id` DriveWise itself generates on-device, two separate
+  `insert ... on conflict (user_id, client_id) do update` statements were
+  issued back-to-back against the production `trips` and `expenses`
+  tables — reproducing exactly what `SyncQueue` does on a retry after a
+  dropped acknowledgment. Both pushes returned the *same* row `id`, and a
+  `count(*)` for that `client_id` was `1` in both tables. This is the
+  actual mechanism the task's step 8 ("verify only one record exists")
+  depends on, exercised directly, not inferred from reading the code. The
+  test rows were deleted afterward.
+- **Protected routes reject unauthenticated access on the live deployment**,
+  fetched directly from `https://drivewise-roan.vercel.app` (not
+  localhost): `/en`, `/en/trips`, `/en/expenses`, `/en/analytics`,
+  `/en/reports`, `/en/vehicles`, `/en/offers` all server-redirected to
+  `/en/login` with no client-side gap.
+- **No untranslated strings and full EN/ES key parity**: the rendered
+  `/en/login` and `/es/login` payloads embed the complete message bundle
+  for the active locale; a script diffing `messages/en.json` against
+  `messages/es.json` found 480/480 keys present in both, with zero keys
+  missing in either direction. (The 5 keys with identical EN/ES values are
+  the brand name and words that are genuinely the same in Spanish, e.g.
+  "Personal" — not missed translations.)
+- **No 5xx responses or server-side runtime errors** on any of the above
+  routes, and zero runtime error clusters reported for the project in the
+  hour surrounding this work (`get_runtime_errors`).
+- **Static horizontal-overflow audit**: no fixed pixel widths
+  (`w-[…px]`/`min-w-[…px]` above small popover sizes) and no raw `<table>`
+  markup anywhere in `apps/web/src`, which is the usual source of
+  accidental horizontal scroll on a 320px viewport; list views use
+  card layouts instead of tables.
+
+**Not run, and why**: the parts of the script that require an
+authenticated session driving real forms in a real browser — sign up,
+start/stop a GPS trip, toggle the browser offline, close and reopen the
+tab, add an expense, watch the sync-status badge move through
+`local → pending → syncing → synced`, resize the viewport across the six
+breakpoints and watch for scrollbars, exercise Settings/logout — could not
+be executed from this environment for the network reason above.
+`packages/shared/src/tracking/sync-queue.test.ts` covers the queue's own
+retry/backoff/idempotency logic in isolation (see above), and the
+database-level check above covers the specific "no duplicates" guarantee,
+but neither one drives the actual UI. Running the interactive script
+end-to-end — ideally with a Playwright session that has real network
+access to the deployed app — is the one piece of this task still owed.
 
 ## Mileage Tracking
 
