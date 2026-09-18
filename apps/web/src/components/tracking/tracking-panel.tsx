@@ -141,8 +141,8 @@ export function TrackingPanel({
         : null;
 
   return (
-    <Card>
-      <CardHeader>
+    <Card className="overflow-hidden border-primary/10 shadow-[0_12px_30px_-24px_rgba(20,32,31,0.55)]">
+      <CardHeader className="border-b border-border/60 bg-secondary/35 pb-4">
         <CardTitle>{t("title")}</CardTitle>
       </CardHeader>
       <CardContent className="flex flex-col gap-4">

@@ -129,11 +129,11 @@ export function DashboardMetrics({
   const weekNet = week.grossUsd - week.expensesUsd - weekVehicleCost;
 
   return (
-    <div className="flex flex-col gap-4">
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+    <div className="flex flex-col gap-5">
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {/* Visual hierarchy, most to least important: net, $/hr, $/mi, miles, vehicle cost, gross, expenses. */}
         <MetricCard
-          className="sm:col-span-2 lg:col-span-3"
+          className="sm:col-span-2 lg:col-span-3 border-0 bg-primary text-primary-foreground shadow-[0_14px_30px_-18px_rgba(15,118,110,0.7)]"
           size="hero"
           icon={<BanknoteIcon />}
           label={tm("netEarnings")}
