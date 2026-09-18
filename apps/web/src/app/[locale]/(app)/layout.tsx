@@ -16,6 +16,15 @@ export default async function AppLayout({
   params: Promise<{ locale: string }>;
 }) {
   const { locale } = await params;
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabasePublishableKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
+
+  // Keep the architecture preview usable before a Supabase project is connected.
+  // Once credentials exist, the normal session gate is enforced again.
+  if (!supabaseUrl || !supabasePublishableKey) {
+    return <AppShell>{children}</AppShell>;
+  }
+
   const supabase = await createClient();
   const { data } = await supabase.auth.getClaims();
 
