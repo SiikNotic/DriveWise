@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useTranslations } from "next-intl";
-import { MoreHorizontalIcon } from "lucide-react";
+import { PlusIcon } from "lucide-react";
 
 import { Link, usePathname } from "@/i18n/navigation";
 import { isNavItemActive, MOBILE_PRIMARY_HREFS, NAV_ITEMS } from "@/components/layout/nav-items";
@@ -26,46 +26,66 @@ export function MobileTabBar() {
   const [moreOpen, setMoreOpen] = useState(false);
 
   const primaryItems = NAV_ITEMS.filter((item) => MOBILE_PRIMARY_HREFS.includes(item.href));
+  const leftItems = primaryItems.slice(0, 2);
+  const rightItems = primaryItems.slice(2);
   const overflowItems = NAV_ITEMS.filter((item) => !MOBILE_PRIMARY_HREFS.includes(item.href));
-  const isOverflowActive = overflowItems.some((item) => isNavItemActive(pathname, item.href));
 
   return (
     <>
       <nav
-        className="fixed inset-x-0 bottom-0 z-10 border-t bg-background/95 backdrop-blur pb-[env(safe-area-inset-bottom)] sm:hidden"
+        className="fixed inset-x-0 bottom-0 z-20 px-3 pb-[max(0.65rem,env(safe-area-inset-bottom))] sm:hidden"
         aria-label={t("nav.dashboard")}
       >
-        <div className="mx-auto flex max-w-5xl">
-          {primaryItems.map((item) => {
-            const isActive = isNavItemActive(pathname, item.href);
-            const Icon = item.icon;
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                aria-current={isActive ? "page" : undefined}
-                className={cn(
-                  "flex flex-1 flex-col items-center gap-0.5 py-2 text-[11px] font-medium transition-colors",
-                  isActive ? "text-primary" : "text-muted-foreground",
-                )}
-              >
-                <Icon className="size-5" aria-hidden="true" />
-                {t(item.labelKey)}
-              </Link>
-            );
-          })}
+        <div className="relative mx-auto flex h-[78px] max-w-md items-end justify-between rounded-[2rem] bg-[#242424] px-4 pb-2 shadow-[0_16px_35px_-18px_rgba(15,23,42,0.9)]">
+          <span aria-hidden="true" className="pointer-events-none absolute -top-9 left-1/2 size-24 -translate-x-1/2 rounded-full bg-background" />
+          <div className="relative z-10 flex min-w-0 flex-1 items-end justify-around">
+            {leftItems.map((item) => {
+              const isActive = isNavItemActive(pathname, item.href);
+              const Icon = item.icon;
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  aria-current={isActive ? "page" : undefined}
+                  className={cn(
+                    "flex min-w-14 flex-col items-center gap-1 rounded-2xl px-2 py-2 text-[10px] font-medium transition-all duration-300",
+                    isActive ? "-translate-y-0.5 text-[#a76cff]" : "text-white/75 hover:text-white",
+                  )}
+                >
+                  <Icon className="size-5" aria-hidden="true" />
+                  <span className="max-w-16 truncate">{t(item.labelKey)}</span>
+                </Link>
+              );
+            })}
+          </div>
           <button
             type="button"
             onClick={() => setMoreOpen(true)}
-            aria-current={isOverflowActive ? "page" : undefined}
-            className={cn(
-              "flex flex-1 flex-col items-center gap-0.5 py-2 text-[11px] font-medium transition-colors",
-              isOverflowActive ? "text-primary" : "text-muted-foreground",
-            )}
+            aria-label={t("nav.more")}
+            className="absolute left-1/2 top-1/2 z-20 grid size-[74px] -translate-x-1/2 -translate-y-[76%] place-items-center rounded-full bg-[#7026c7] text-white shadow-[0_10px_24px_-6px_rgba(112,38,199,0.9)] transition-transform duration-300 hover:scale-105 active:scale-95"
           >
-            <MoreHorizontalIcon className="size-5" aria-hidden="true" />
-            {t("nav.more")}
+            <PlusIcon className="size-9 stroke-[1.5]" aria-hidden="true" />
           </button>
+          <div className="relative z-10 flex min-w-0 flex-1 items-end justify-around">
+            {rightItems.map((item) => {
+              const isActive = isNavItemActive(pathname, item.href);
+              const Icon = item.icon;
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  aria-current={isActive ? "page" : undefined}
+                  className={cn(
+                    "flex min-w-14 flex-col items-center gap-1 rounded-2xl px-2 py-2 text-[10px] font-medium transition-all duration-300",
+                    isActive ? "-translate-y-0.5 text-[#a76cff]" : "text-white/75 hover:text-white",
+                  )}
+                >
+                  <Icon className="size-5" aria-hidden="true" />
+                  <span className="max-w-16 truncate">{t(item.labelKey)}</span>
+                </Link>
+              );
+            })}
+          </div>
         </div>
       </nav>
 
