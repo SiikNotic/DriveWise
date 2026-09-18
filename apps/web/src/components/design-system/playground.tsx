@@ -35,6 +35,8 @@ const BUTTON_VARIANTS = [
 ] as const;
 
 export function ButtonPlayground() {
+  const t = useTranslations("designSystem.playground.buttonSizes");
+
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-wrap gap-3">
@@ -45,24 +47,27 @@ export function ButtonPlayground() {
         ))}
       </div>
       <div className="flex flex-wrap items-center gap-3">
-        <Button size="sm">Small</Button>
-        <Button size="default">Default</Button>
-        <Button size="lg">Large</Button>
-        <Button disabled>Disabled</Button>
+        <Button size="sm">{t("small")}</Button>
+        <Button size="default">{t("default")}</Button>
+        <Button size="lg">{t("large")}</Button>
+        <Button disabled>{t("disabled")}</Button>
       </div>
     </div>
   );
 }
 
 export function InputPlayground() {
+  const t = useTranslations("designSystem.playground.inputs");
+  const tc = useTranslations("common");
+
   return (
     <div className="grid gap-4 sm:grid-cols-2">
       <div className="grid gap-1.5">
-        <Label htmlFor="ds-vehicle">Vehicle nickname</Label>
-        <Input id="ds-vehicle" placeholder="My Civic" />
+        <Label htmlFor="ds-vehicle">{t("vehicleNicknameLabel")}</Label>
+        <Input id="ds-vehicle" placeholder={t("vehicleNicknamePlaceholder")} />
       </div>
       <div className="grid gap-1.5">
-        <Label htmlFor="ds-platform">Platform</Label>
+        <Label htmlFor="ds-platform">{t("platformLabel")}</Label>
         <Select defaultValue="doordash">
           <SelectTrigger id="ds-platform" className="w-full">
             <SelectValue />
@@ -72,38 +77,40 @@ export function InputPlayground() {
             <SelectItem value="uber_eats">Uber Eats</SelectItem>
             <SelectItem value="grubhub">Grubhub</SelectItem>
             <SelectItem value="instacart">Instacart</SelectItem>
-            <SelectItem value="other">Other</SelectItem>
+            <SelectItem value="other">{tc("other")}</SelectItem>
           </SelectContent>
         </Select>
       </div>
       <div className="grid gap-1.5">
-        <Label htmlFor="ds-disabled">Disabled</Label>
-        <Input id="ds-disabled" placeholder="Not editable" disabled />
+        <Label htmlFor="ds-disabled">{t("disabledLabel")}</Label>
+        <Input id="ds-disabled" placeholder={t("disabledPlaceholder")} disabled />
       </div>
       <div className="grid gap-1.5">
-        <Label htmlFor="ds-invalid">Invalid</Label>
-        <Input id="ds-invalid" aria-invalid defaultValue="not a number" />
+        <Label htmlFor="ds-invalid">{t("invalidLabel")}</Label>
+        <Input id="ds-invalid" aria-invalid defaultValue={t("invalidValue")} />
       </div>
     </div>
   );
 }
 
 export function TabsPlayground() {
+  const t = useTranslations("designSystem.playground.tabs");
+
   return (
     <Tabs defaultValue="week">
       <TabsList>
-        <TabsTrigger value="week">This week</TabsTrigger>
-        <TabsTrigger value="month">This month</TabsTrigger>
-        <TabsTrigger value="year">This year</TabsTrigger>
+        <TabsTrigger value="week">{t("week")}</TabsTrigger>
+        <TabsTrigger value="month">{t("month")}</TabsTrigger>
+        <TabsTrigger value="year">{t("year")}</TabsTrigger>
       </TabsList>
       <TabsContent value="week" className="text-muted-foreground text-sm">
-        Showing metrics for the current week.
+        {t("weekContent")}
       </TabsContent>
       <TabsContent value="month" className="text-muted-foreground text-sm">
-        Showing metrics for the current month.
+        {t("monthContent")}
       </TabsContent>
       <TabsContent value="year" className="text-muted-foreground text-sm">
-        Showing metrics for the current year.
+        {t("yearContent")}
       </TabsContent>
     </Tabs>
   );
@@ -111,14 +118,17 @@ export function TabsPlayground() {
 
 export function OverlayPlayground() {
   const t = useTranslations("designSystem");
+  const tc = useTranslations("common");
+  const tt = useTranslations("trips");
+  const tn = useTranslations("notifications");
 
   return (
     <div className="flex flex-wrap gap-3">
       <Button
         variant="outline"
         onClick={() =>
-          toast(t("toastDemo"), {
-            description: "Trip synced to your account.",
+          toast(tn("tripSynced"), {
+            description: tn("syncComplete"),
           })
         }
       >
@@ -127,19 +137,19 @@ export function OverlayPlayground() {
 
       <Dialog>
         <DialogTrigger asChild>
-          <Button variant="destructive">{t("dialogDemo.trigger")}</Button>
+          <Button variant="destructive">{t("dialogTrigger")}</Button>
         </DialogTrigger>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{t("dialogDemo.title")}</DialogTitle>
-            <DialogDescription>{t("dialogDemo.description")}</DialogDescription>
+            <DialogTitle>{tt("deleteConfirm.title")}</DialogTitle>
+            <DialogDescription>{tt("deleteConfirm.description")}</DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <DialogClose asChild>
-              <Button variant="outline">{t("dialogDemo.cancel")}</Button>
+              <Button variant="outline">{tc("cancel")}</Button>
             </DialogClose>
             <DialogClose asChild>
-              <Button variant="destructive">{t("dialogDemo.confirm")}</Button>
+              <Button variant="destructive">{tc("delete")}</Button>
             </DialogClose>
           </DialogFooter>
         </DialogContent>

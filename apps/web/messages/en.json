@@ -7,9 +7,133 @@
     "dashboard": "Dashboard",
     "trips": "Trips",
     "offers": "Offer Analyzer",
+    "vehicles": "Vehicles",
     "expenses": "Expenses",
+    "analytics": "Analytics",
     "reports": "Tax Reports",
     "settings": "Settings"
+  },
+  "common": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "add": "Add",
+    "confirm": "Confirm",
+    "back": "Back",
+    "next": "Next",
+    "close": "Close",
+    "done": "Done",
+    "search": "Search",
+    "filter": "Filter",
+    "viewAll": "View all",
+    "learnMore": "Learn more",
+    "required": "Required",
+    "optional": "Optional",
+    "other": "Other",
+    "comingSoon": "Coming soon"
+  },
+  "loading": {
+    "generic": "Loading…",
+    "trips": "Loading trips…",
+    "offers": "Loading offers…",
+    "vehicles": "Loading vehicles…",
+    "expenses": "Loading expenses…",
+    "analytics": "Loading analytics…",
+    "reports": "Generating your report…"
+  },
+  "errors": {
+    "generic": "Something went wrong. Please try again.",
+    "network": "No internet connection. Check your connection and try again.",
+    "notFound": "We couldn't find what you're looking for.",
+    "unauthorized": "You need to sign in to do that.",
+    "forbidden": "You don't have permission to do that.",
+    "timeout": "That took too long. Please try again.",
+    "locationDenied": "Location access was denied. Enable it in your device settings to track trips.",
+    "syncFailed": "We couldn't sync some data. We'll keep trying automatically."
+  },
+  "validation": {
+    "required": "This field is required.",
+    "invalidEmail": "Enter a valid email address.",
+    "invalidNumber": "Enter a valid number.",
+    "minValue": "Must be at least {min}.",
+    "maxValue": "Must be at most {max}.",
+    "passwordTooShort": "Password must be at least {min} characters.",
+    "passwordsDontMatch": "Passwords don't match."
+  },
+  "notifications": {
+    "tripSynced": "Trip synced.",
+    "tripSaved": "Trip saved.",
+    "expenseSaved": "Expense saved.",
+    "expenseDeleted": "Expense deleted.",
+    "vehicleSaved": "Vehicle saved.",
+    "vehicleDeleted": "Vehicle deleted.",
+    "offerSaved": "Offer saved.",
+    "settingsSaved": "Settings saved.",
+    "syncComplete": "All caught up — everything's synced.",
+    "exportReady": "Your report is ready to download."
+  },
+  "confirmations": {
+    "genericTitle": "Are you sure?",
+    "genericDescription": "This action can't be undone.",
+    "discardChanges": {
+      "title": "Discard changes?",
+      "description": "You have unsaved changes that will be lost.",
+      "confirm": "Discard"
+    }
+  },
+  "auth": {
+    "signIn": {
+      "title": "Sign in",
+      "subtitle": "Welcome back — sign in to keep tracking your earnings.",
+      "submit": "Sign in",
+      "forgotPassword": "Forgot your password?",
+      "noAccount": "Don't have an account?",
+      "createAccount": "Create account"
+    },
+    "signUp": {
+      "title": "Create your account",
+      "subtitle": "Start tracking miles and earnings in minutes.",
+      "submit": "Create account",
+      "haveAccount": "Already have an account?",
+      "signIn": "Sign in"
+    },
+    "resetPassword": {
+      "title": "Reset your password",
+      "subtitle": "We'll email you a link to reset it.",
+      "submit": "Send reset link"
+    },
+    "fields": {
+      "email": "Email",
+      "password": "Password",
+      "confirmPassword": "Confirm password"
+    },
+    "signOut": "Sign out",
+    "signOutConfirm": "Are you sure you want to sign out?"
+  },
+  "onboarding": {
+    "welcome": {
+      "title": "Welcome to DriveWise",
+      "subtitle": "Track miles, earnings and expenses across every delivery platform.",
+      "getStarted": "Get started"
+    },
+    "permissions": {
+      "locationTitle": "Allow location access",
+      "locationDescription": "DriveWise needs your location to track trips and calculate mileage automatically.",
+      "backgroundTitle": "Allow background location",
+      "backgroundDescription": "Keep tracking trips even when the app is in the background or your phone is locked.",
+      "allow": "Allow",
+      "notNow": "Not now"
+    },
+    "addVehicle": {
+      "title": "Add your vehicle",
+      "subtitle": "We'll use this to estimate your cost per mile."
+    },
+    "finish": {
+      "title": "You're all set",
+      "subtitle": "Start driving — DriveWise takes care of the rest.",
+      "goToDashboard": "Go to dashboard"
+    }
   },
   "dashboard": {
     "title": "Dashboard",
@@ -19,6 +143,190 @@
       "label": "Sync status",
       "online": "Online — synced",
       "offline": "Offline — saving trips locally"
+    }
+  },
+  "tracking": {
+    "title": "Tracking",
+    "startTracking": "Start Tracking",
+    "stopTracking": "Stop Tracking",
+    "pause": "Pause",
+    "resume": "Resume",
+    "inProgress": "Trip in progress",
+    "currentDistance": "Current distance",
+    "currentDuration": "Duration",
+    "currentEarnings": "Estimated earnings",
+    "gpsStatus": {
+      "label": "GPS status",
+      "active": "Active",
+      "searching": "Searching for signal…",
+      "weak": "Weak signal"
+    },
+    "offlineNotice": "You're offline — this trip is being saved on your device and will sync automatically.",
+    "discardTrip": "Discard trip",
+    "endTripConfirm": {
+      "title": "End this trip?",
+      "description": "We'll save it as a completed trip using the distance and time recorded so far."
+    }
+  },
+  "trips": {
+    "title": "Trips",
+    "subtitle": "Every trip DriveWise has recorded.",
+    "addManual": "Add trip manually",
+    "filters": {
+      "all": "All",
+      "business": "Business",
+      "personal": "Personal",
+      "commute": "Commute"
+    },
+    "fields": {
+      "date": "Date",
+      "distance": "Distance",
+      "duration": "Duration",
+      "earnings": "Earnings",
+      "platform": "Platform",
+      "purpose": "Purpose"
+    },
+    "purpose": {
+      "business": "Business",
+      "personal": "Personal",
+      "commute": "Commute"
+    },
+    "source": {
+      "gpsAuto": "Tracked automatically",
+      "manual": "Added manually"
+    },
+    "empty": {
+      "title": "No trips yet",
+      "description": "Trips you record will show up here.",
+      "cta": "Start Tracking"
+    },
+    "deleteConfirm": {
+      "title": "Delete this trip?",
+      "description": "This can't be undone. The trip and its route will be permanently removed."
+    }
+  },
+  "offers": {
+    "title": "Offer Analyzer",
+    "subtitle": "See if a delivery offer is worth accepting before you tap Accept.",
+    "fields": {
+      "platform": "Platform",
+      "pay": "Offered pay",
+      "distance": "Distance",
+      "duration": "Estimated time",
+      "returnDistance": "Return distance (optional)"
+    },
+    "analyze": "Analyze offer",
+    "result": {
+      "estimatedNet": "Estimated Net",
+      "operatingCost": "Operating Cost",
+      "earningsPerMile": "Earnings per Mile",
+      "earningsPerHour": "Earnings per Hour",
+      "worthIt": "Worth it",
+      "notWorthIt": "Not worth it"
+    },
+    "decision": {
+      "accepted": "Accepted",
+      "declined": "Declined",
+      "expired": "Expired"
+    },
+    "empty": {
+      "title": "No offers analyzed yet",
+      "description": "Enter an offer's pay, distance and time to see if it's worth taking."
+    }
+  },
+  "vehicles": {
+    "title": "Vehicles",
+    "subtitle": "Vehicles you use for deliveries.",
+    "addVehicle": "Add vehicle",
+    "fields": {
+      "nickname": "Nickname",
+      "make": "Make",
+      "model": "Model",
+      "year": "Year",
+      "fuelType": "Fuel type",
+      "fuelEfficiency": "Fuel efficiency (MPG)",
+      "monthlyFixedCost": "Monthly fixed costs",
+      "odometer": "Odometer"
+    },
+    "fuelType": {
+      "gasoline": "Gasoline",
+      "diesel": "Diesel",
+      "hybrid": "Hybrid",
+      "electric": "Electric"
+    },
+    "setDefault": "Set as default",
+    "isDefault": "Default vehicle",
+    "empty": {
+      "title": "No vehicles yet",
+      "description": "Add a vehicle to start calculating your cost per mile."
+    },
+    "deleteConfirm": {
+      "title": "Delete this vehicle?",
+      "description": "Trips linked to this vehicle will keep their records, but won't have a vehicle cost estimate anymore."
+    }
+  },
+  "expenses": {
+    "title": "Expenses",
+    "subtitle": "Track what it actually costs to drive.",
+    "addExpense": "Add expense",
+    "fields": {
+      "category": "Category",
+      "amount": "Amount",
+      "date": "Date",
+      "description": "Description",
+      "vehicle": "Vehicle",
+      "receipt": "Receipt"
+    },
+    "category": {
+      "fuel": "Fuel",
+      "maintenance": "Maintenance",
+      "insurance": "Insurance",
+      "vehiclePayment": "Vehicle payment",
+      "phonePlan": "Phone plan",
+      "supplies": "Supplies",
+      "parkingTolls": "Parking & tolls",
+      "other": "Other"
+    },
+    "taxDeductible": "Tax deductible",
+    "empty": {
+      "title": "No expenses yet",
+      "description": "Log fuel, maintenance and other costs to see your real profit."
+    },
+    "deleteConfirm": {
+      "title": "Delete this expense?",
+      "description": "This can't be undone."
+    }
+  },
+  "analytics": {
+    "title": "Analytics",
+    "subtitle": "How your driving is really performing.",
+    "period": {
+      "week": "This week",
+      "month": "This month",
+      "year": "This year"
+    },
+    "bestDay": "Best day",
+    "bestPlatform": "Best platform",
+    "avgPerTrip": "Average per trip",
+    "avgPerHour": "Average per hour",
+    "totalTrips": "Total trips",
+    "empty": {
+      "title": "Not enough data yet",
+      "description": "Keep tracking trips to unlock your performance analytics."
+    }
+  },
+  "reports": {
+    "title": "Tax Reports",
+    "subtitle": "Mileage reports ready for tax season.",
+    "selectYear": "Tax year",
+    "standardMileageRate": "Standard mileage rate",
+    "totalBusinessMiles": "Total business miles",
+    "totalDeduction": "Total deduction",
+    "exportCsv": "Export CSV",
+    "exportPdf": "Export PDF",
+    "empty": {
+      "title": "Nothing to report yet",
+      "description": "Log business trips to generate your mileage report."
     }
   },
   "settings": {
@@ -44,6 +352,10 @@
         "dark": "Dark",
         "system": "System"
       }
+    },
+    "account": {
+      "title": "Account",
+      "description": "Manage your sign-in and session."
     }
   },
   "units": {
@@ -89,12 +401,49 @@
       "charts": "Charts"
     },
     "toastDemo": "Show a toast",
-    "dialogDemo": {
-      "trigger": "Open dialog",
-      "title": "Delete this trip?",
-      "description": "This can't be undone. The trip and its route will be permanently removed.",
-      "cancel": "Cancel",
-      "confirm": "Delete trip"
+    "dialogTrigger": "Open dialog",
+    "typographyDemo": {
+      "hero": "Hero figure — 48px and up",
+      "h1": "Heading 1 — 24px",
+      "h2": "Heading 2 — 18px",
+      "h3": "Heading 3 — 16px",
+      "body": "Body text sits at 16px with normal weight for comfortable reading on mobile.",
+      "muted": "Muted / secondary text — captions, helper copy, timestamps.",
+      "proportionalLabel": "Proportional (hero/stat values):",
+      "tabularLabel": "Tabular (table/list columns):"
+    },
+    "loadingDemo": {
+      "title": "Loading",
+      "description": "Skeleton placeholder"
+    },
+    "chartTitles": {
+      "trend": "{metric} — 7 days",
+      "byPlatform": "{metric} by platform"
+    },
+    "playground": {
+      "buttonSizes": {
+        "small": "Small",
+        "default": "Default",
+        "large": "Large",
+        "disabled": "Disabled"
+      },
+      "inputs": {
+        "vehicleNicknameLabel": "Vehicle nickname",
+        "vehicleNicknamePlaceholder": "My Civic",
+        "platformLabel": "Platform",
+        "disabledLabel": "Disabled",
+        "disabledPlaceholder": "Not editable",
+        "invalidLabel": "Invalid",
+        "invalidValue": "not a number"
+      },
+      "tabs": {
+        "week": "This week",
+        "month": "This month",
+        "year": "This year",
+        "weekContent": "Showing metrics for the current week.",
+        "monthContent": "Showing metrics for the current month.",
+        "yearContent": "Showing metrics for the current year."
+      }
     },
     "sampleEmptyState": {
       "title": "No trips yet",
@@ -104,8 +453,5 @@
       "title": "Couldn't load trips",
       "description": "Check your connection and try again."
     }
-  },
-  "common": {
-    "comingSoon": "Coming soon"
   }
 }

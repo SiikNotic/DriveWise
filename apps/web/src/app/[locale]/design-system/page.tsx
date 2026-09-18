@@ -69,23 +69,29 @@ const EARNINGS_PER_HOUR_TREND = [
   28, 27.2, 29.1, 26.8, 25.9, 25.1, 24.6,
 ].map((value) => ({ value }));
 
-const WEEKLY_TREND = [
-  { label: "Mon", netEarningsUsd: 118 },
-  { label: "Tue", netEarningsUsd: 96 },
-  { label: "Wed", netEarningsUsd: 142 },
-  { label: "Thu", netEarningsUsd: 131 },
-  { label: "Fri", netEarningsUsd: 168 },
-  { label: "Sat", netEarningsUsd: 210 },
-  { label: "Sun", netEarningsUsd: 187 },
-];
+const WEEKLY_NET_EARNINGS_USD = [118, 96, 142, 131, 168, 210, 187];
 
-const PLATFORM_BREAKDOWN = [
-  { platform: "DoorDash", earningsUsd: 412 },
-  { platform: "Uber Eats", earningsUsd: 268 },
-  { platform: "Grubhub", earningsUsd: 96 },
-  { platform: "Instacart", earningsUsd: 153 },
-  { platform: "Other", earningsUsd: 24 },
-];
+/**
+ * Weekday labels come from Intl, not a hand-translated list — day-name
+ * formatting is locale data, and letting the platform own it means it's
+ * automatically correct for any future locale (abbreviation length,
+ * capitalization, first letter capitalized or not, etc.).
+ */
+function buildWeeklyTrend(locale: string) {
+  const formatter = new Intl.DateTimeFormat(locale, { weekday: "short" });
+  // A fixed reference Monday, so the demo data is stable across renders.
+  const referenceMonday = new Date(Date.UTC(2024, 0, 1));
+
+  return WEEKLY_NET_EARNINGS_USD.map((netEarningsUsd, index) => {
+    const date = new Date(referenceMonday);
+    date.setUTCDate(referenceMonday.getUTCDate() + index);
+    return { label: formatter.format(date), netEarningsUsd };
+  });
+}
+
+// Platform names are brand names (DoorDash, Uber Eats, Grubhub, Instacart)
+// and never translated; "Other" is the one real label, supplied by the
+// caller via `common.other`.
 
 export default async function DesignSystemPage(props: {
   params: Promise<{ locale: string }>;
@@ -96,9 +102,20 @@ export default async function DesignSystemPage(props: {
   const tm = await getTranslations("metrics");
   const ts = await getTranslations("status");
   const tstates = await getTranslations("states");
+  const tc = await getTranslations("common");
   const tu = await getTranslations("units");
   const mi = tu("mi");
   const hr = tu("hr");
+
+  const weeklyTrend = buildWeeklyTrend(locale);
+
+  const platformBreakdown = [
+    { platform: "DoorDash", earningsUsd: 412 },
+    { platform: "Uber Eats", earningsUsd: 268 },
+    { platform: "Grubhub", earningsUsd: 96 },
+    { platform: "Instacart", earningsUsd: 153 },
+    { platform: tc("other"), earningsUsd: 24 },
+  ];
 
   return (
     <div className="flex flex-col gap-10 pb-10">
@@ -111,27 +128,30 @@ export default async function DesignSystemPage(props: {
         <Card>
           <CardContent className="flex flex-col gap-3">
             <p className="text-4xl font-semibold tracking-tight">
-              Hero figure — 48px+
+              {t("typographyDemo.hero")}
             </p>
-            <p className="text-2xl font-semibold tracking-tight">Heading 1 — 24px</p>
-            <p className="text-lg font-semibold">Heading 2 — 18px</p>
-            <p className="text-base font-medium">Heading 3 — 16px</p>
-            <p className="text-base">
-              Body text sits at 16px with normal weight for comfortable
-              reading on mobile.
+            <p className="text-2xl font-semibold tracking-tight">
+              {t("typographyDemo.h1")}
             </p>
+            <p className="text-lg font-semibold">{t("typographyDemo.h2")}</p>
+            <p className="text-base font-medium">{t("typographyDemo.h3")}</p>
+            <p className="text-base">{t("typographyDemo.body")}</p>
             <p className="text-muted-foreground text-sm">
-              Muted / secondary text — captions, helper copy, timestamps.
+              {t("typographyDemo.muted")}
             </p>
             <div className="border-t pt-3">
               <p className="text-muted-foreground text-xs">
-                Proportional (hero/stat values):{" "}
-                <span className="text-metric text-lg">$1,284.06</span>
+                {t("typographyDemo.proportionalLabel")}{" "}
+                <span className="text-metric text-lg">
+                  {formatUsd(1284.06, locale)}
+                </span>
               </p>
               <p className="text-muted-foreground text-xs">
-                Tabular (table/list columns):{" "}
-                <span className="font-tabular text-lg">$1,284.06</span> /{" "}
-                <span className="font-tabular text-lg">$96.40</span>
+                {t("typographyDemo.tabularLabel")}{" "}
+                <span className="font-tabular text-lg">
+                  {formatUsd(1284.06, locale)}
+                </span>{" "}
+                / <span className="font-tabular text-lg">{formatUsd(96.4, locale)}</span>
               </p>
             </div>
           </CardContent>
@@ -267,8 +287,10 @@ export default async function DesignSystemPage(props: {
           />
           <Card>
             <CardHeader>
-              <CardTitle className="text-sm font-medium">Loading</CardTitle>
-              <CardDescription>Skeleton placeholder</CardDescription>
+              <CardTitle className="text-sm font-medium">
+                {t("loadingDemo.title")}
+              </CardTitle>
+              <CardDescription>{t("loadingDemo.description")}</CardDescription>
             </CardHeader>
             <CardContent className="flex flex-col gap-2">
               <Skeleton className="h-4 w-3/4" />
@@ -284,21 +306,21 @@ export default async function DesignSystemPage(props: {
           <Card>
             <CardHeader>
               <CardTitle className="text-sm font-medium">
-                {tm("netEarnings")} — 7 days
+                {t("chartTitles.trend", { metric: tm("netEarnings") })}
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <EarningsTrendChart data={WEEKLY_TREND} />
+              <EarningsTrendChart data={weeklyTrend} />
             </CardContent>
           </Card>
           <Card>
             <CardHeader>
               <CardTitle className="text-sm font-medium">
-                {tm("grossEarnings")} by platform
+                {t("chartTitles.byPlatform", { metric: tm("grossEarnings") })}
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <EarningsByPlatformChart data={PLATFORM_BREAKDOWN} />
+              <EarningsByPlatformChart data={platformBreakdown} />
             </CardContent>
           </Card>
         </div>

@@ -7,9 +7,133 @@
     "dashboard": "Panel",
     "trips": "Viajes",
     "offers": "Analizador de ofertas",
+    "vehicles": "Vehículos",
     "expenses": "Gastos",
+    "analytics": "Estadísticas",
     "reports": "Reportes de impuestos",
     "settings": "Configuración"
+  },
+  "common": {
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "delete": "Eliminar",
+    "edit": "Editar",
+    "add": "Agregar",
+    "confirm": "Confirmar",
+    "back": "Atrás",
+    "next": "Siguiente",
+    "close": "Cerrar",
+    "done": "Listo",
+    "search": "Buscar",
+    "filter": "Filtrar",
+    "viewAll": "Ver todo",
+    "learnMore": "Más información",
+    "required": "Requerido",
+    "optional": "Opcional",
+    "other": "Otro",
+    "comingSoon": "Próximamente"
+  },
+  "loading": {
+    "generic": "Cargando…",
+    "trips": "Cargando viajes…",
+    "offers": "Cargando ofertas…",
+    "vehicles": "Cargando vehículos…",
+    "expenses": "Cargando gastos…",
+    "analytics": "Cargando estadísticas…",
+    "reports": "Generando tu reporte…"
+  },
+  "errors": {
+    "generic": "Algo salió mal. Por favor intenta de nuevo.",
+    "network": "Sin conexión a internet. Verifica tu conexión e intenta de nuevo.",
+    "notFound": "No pudimos encontrar lo que buscas.",
+    "unauthorized": "Necesitas iniciar sesión para hacer eso.",
+    "forbidden": "No tienes permiso para hacer eso.",
+    "timeout": "Eso tardó demasiado. Por favor intenta de nuevo.",
+    "locationDenied": "Se denegó el acceso a la ubicación. Actívalo en la configuración de tu dispositivo para registrar viajes.",
+    "syncFailed": "No pudimos sincronizar algunos datos. Lo seguiremos intentando automáticamente."
+  },
+  "validation": {
+    "required": "Este campo es obligatorio.",
+    "invalidEmail": "Ingresa un correo electrónico válido.",
+    "invalidNumber": "Ingresa un número válido.",
+    "minValue": "Debe ser al menos {min}.",
+    "maxValue": "Debe ser como máximo {max}.",
+    "passwordTooShort": "La contraseña debe tener al menos {min} caracteres.",
+    "passwordsDontMatch": "Las contraseñas no coinciden."
+  },
+  "notifications": {
+    "tripSynced": "Viaje sincronizado.",
+    "tripSaved": "Viaje guardado.",
+    "expenseSaved": "Gasto guardado.",
+    "expenseDeleted": "Gasto eliminado.",
+    "vehicleSaved": "Vehículo guardado.",
+    "vehicleDeleted": "Vehículo eliminado.",
+    "offerSaved": "Oferta guardada.",
+    "settingsSaved": "Configuración guardada.",
+    "syncComplete": "Todo al día — ya está todo sincronizado.",
+    "exportReady": "Tu reporte ya está listo para descargar."
+  },
+  "confirmations": {
+    "genericTitle": "¿Estás seguro?",
+    "genericDescription": "Esta acción no se puede deshacer.",
+    "discardChanges": {
+      "title": "¿Descartar cambios?",
+      "description": "Tienes cambios sin guardar que se perderán.",
+      "confirm": "Descartar"
+    }
+  },
+  "auth": {
+    "signIn": {
+      "title": "Iniciar sesión",
+      "subtitle": "Bienvenido de nuevo — inicia sesión para seguir registrando tus ganancias.",
+      "submit": "Iniciar sesión",
+      "forgotPassword": "¿Olvidaste tu contraseña?",
+      "noAccount": "¿No tienes cuenta?",
+      "createAccount": "Crear cuenta"
+    },
+    "signUp": {
+      "title": "Crea tu cuenta",
+      "subtitle": "Empieza a registrar tus millas y ganancias en minutos.",
+      "submit": "Crear cuenta",
+      "haveAccount": "¿Ya tienes cuenta?",
+      "signIn": "Inicia sesión"
+    },
+    "resetPassword": {
+      "title": "Restablecer tu contraseña",
+      "subtitle": "Te enviaremos un enlace para restablecerla.",
+      "submit": "Enviar enlace"
+    },
+    "fields": {
+      "email": "Correo electrónico",
+      "password": "Contraseña",
+      "confirmPassword": "Confirmar contraseña"
+    },
+    "signOut": "Cerrar sesión",
+    "signOutConfirm": "¿Seguro que quieres cerrar sesión?"
+  },
+  "onboarding": {
+    "welcome": {
+      "title": "Bienvenido a DriveWise",
+      "subtitle": "Registra millas, ganancias y gastos de todas tus apps de delivery.",
+      "getStarted": "Comenzar"
+    },
+    "permissions": {
+      "locationTitle": "Permitir acceso a la ubicación",
+      "locationDescription": "DriveWise necesita tu ubicación para registrar viajes y calcular el millaje automáticamente.",
+      "backgroundTitle": "Permitir ubicación en segundo plano",
+      "backgroundDescription": "Sigue registrando viajes aunque la app esté en segundo plano o tu teléfono esté bloqueado.",
+      "allow": "Permitir",
+      "notNow": "Ahora no"
+    },
+    "addVehicle": {
+      "title": "Agrega tu vehículo",
+      "subtitle": "Lo usaremos para calcular tu costo por milla."
+    },
+    "finish": {
+      "title": "Todo listo",
+      "subtitle": "Empieza a manejar — DriveWise se encarga del resto.",
+      "goToDashboard": "Ir al panel"
+    }
   },
   "dashboard": {
     "title": "Panel",
@@ -19,6 +143,190 @@
       "label": "Estado de sincronización",
       "online": "En línea — sincronizado",
       "offline": "Sin conexión — guardando viajes localmente"
+    }
+  },
+  "tracking": {
+    "title": "Seguimiento",
+    "startTracking": "Iniciar seguimiento",
+    "stopTracking": "Detener seguimiento",
+    "pause": "Pausar",
+    "resume": "Reanudar",
+    "inProgress": "Viaje en curso",
+    "currentDistance": "Distancia actual",
+    "currentDuration": "Duración",
+    "currentEarnings": "Ganancia estimada",
+    "gpsStatus": {
+      "label": "Estado del GPS",
+      "active": "Activo",
+      "searching": "Buscando señal…",
+      "weak": "Señal débil"
+    },
+    "offlineNotice": "Estás sin conexión — este viaje se está guardando en tu dispositivo y se sincronizará automáticamente.",
+    "discardTrip": "Descartar viaje",
+    "endTripConfirm": {
+      "title": "¿Terminar este viaje?",
+      "description": "Lo guardaremos como viaje completado usando la distancia y el tiempo registrados hasta ahora."
+    }
+  },
+  "trips": {
+    "title": "Viajes",
+    "subtitle": "Todos los viajes que DriveWise ha registrado.",
+    "addManual": "Agregar viaje manualmente",
+    "filters": {
+      "all": "Todos",
+      "business": "Trabajo",
+      "personal": "Personal",
+      "commute": "Traslado"
+    },
+    "fields": {
+      "date": "Fecha",
+      "distance": "Distancia",
+      "duration": "Duración",
+      "earnings": "Ganancia",
+      "platform": "Plataforma",
+      "purpose": "Motivo"
+    },
+    "purpose": {
+      "business": "Trabajo",
+      "personal": "Personal",
+      "commute": "Traslado"
+    },
+    "source": {
+      "gpsAuto": "Registrado automáticamente",
+      "manual": "Agregado manualmente"
+    },
+    "empty": {
+      "title": "Todavía no hay viajes",
+      "description": "Los viajes que registres aparecerán aquí.",
+      "cta": "Iniciar seguimiento"
+    },
+    "deleteConfirm": {
+      "title": "¿Eliminar este viaje?",
+      "description": "Esto no se puede deshacer. El viaje y su ruta se eliminarán permanentemente."
+    }
+  },
+  "offers": {
+    "title": "Analizador de ofertas",
+    "subtitle": "Descubre si una oferta de entrega vale la pena antes de aceptarla.",
+    "fields": {
+      "platform": "Plataforma",
+      "pay": "Pago ofrecido",
+      "distance": "Distancia",
+      "duration": "Tiempo estimado",
+      "returnDistance": "Distancia de regreso (opcional)"
+    },
+    "analyze": "Analizar oferta",
+    "result": {
+      "estimatedNet": "Neto estimado",
+      "operatingCost": "Costo operativo",
+      "earningsPerMile": "Ganancia por milla",
+      "earningsPerHour": "Ganancia por hora",
+      "worthIt": "Vale la pena",
+      "notWorthIt": "No vale la pena"
+    },
+    "decision": {
+      "accepted": "Aceptada",
+      "declined": "Rechazada",
+      "expired": "Expirada"
+    },
+    "empty": {
+      "title": "Todavía no has analizado ofertas",
+      "description": "Ingresa el pago, la distancia y el tiempo de una oferta para ver si vale la pena aceptarla."
+    }
+  },
+  "vehicles": {
+    "title": "Vehículos",
+    "subtitle": "Los vehículos que usas para hacer entregas.",
+    "addVehicle": "Agregar vehículo",
+    "fields": {
+      "nickname": "Apodo",
+      "make": "Marca",
+      "model": "Modelo",
+      "year": "Año",
+      "fuelType": "Tipo de combustible",
+      "fuelEfficiency": "Rendimiento (millas por galón)",
+      "monthlyFixedCost": "Costos fijos mensuales",
+      "odometer": "Millaje del odómetro"
+    },
+    "fuelType": {
+      "gasoline": "Gasolina",
+      "diesel": "Diésel",
+      "hybrid": "Híbrido",
+      "electric": "Eléctrico"
+    },
+    "setDefault": "Usar como predeterminado",
+    "isDefault": "Vehículo predeterminado",
+    "empty": {
+      "title": "Todavía no hay vehículos",
+      "description": "Agrega un vehículo para empezar a calcular tu costo por milla."
+    },
+    "deleteConfirm": {
+      "title": "¿Eliminar este vehículo?",
+      "description": "Los viajes vinculados a este vehículo conservarán su registro, pero ya no tendrán una estimación de costo del vehículo."
+    }
+  },
+  "expenses": {
+    "title": "Gastos",
+    "subtitle": "Registra lo que realmente cuesta manejar.",
+    "addExpense": "Agregar gasto",
+    "fields": {
+      "category": "Categoría",
+      "amount": "Monto",
+      "date": "Fecha",
+      "description": "Descripción",
+      "vehicle": "Vehículo",
+      "receipt": "Recibo"
+    },
+    "category": {
+      "fuel": "Gasolina",
+      "maintenance": "Mantenimiento",
+      "insurance": "Seguro",
+      "vehiclePayment": "Pago del vehículo",
+      "phonePlan": "Plan de teléfono",
+      "supplies": "Suministros",
+      "parkingTolls": "Estacionamiento y peajes",
+      "other": "Otro"
+    },
+    "taxDeductible": "Deducible de impuestos",
+    "empty": {
+      "title": "Todavía no hay gastos",
+      "description": "Registra gasolina, mantenimiento y otros costos para ver tu ganancia real."
+    },
+    "deleteConfirm": {
+      "title": "¿Eliminar este gasto?",
+      "description": "Esto no se puede deshacer."
+    }
+  },
+  "analytics": {
+    "title": "Estadísticas",
+    "subtitle": "Qué tan bien te está yendo manejando, en números.",
+    "period": {
+      "week": "Esta semana",
+      "month": "Este mes",
+      "year": "Este año"
+    },
+    "bestDay": "Mejor día",
+    "bestPlatform": "Mejor plataforma",
+    "avgPerTrip": "Promedio por viaje",
+    "avgPerHour": "Promedio por hora",
+    "totalTrips": "Viajes totales",
+    "empty": {
+      "title": "Todavía no hay suficientes datos",
+      "description": "Sigue registrando viajes para desbloquear tus estadísticas de rendimiento."
+    }
+  },
+  "reports": {
+    "title": "Reportes de impuestos",
+    "subtitle": "Reportes de millaje listos para la temporada de impuestos.",
+    "selectYear": "Año fiscal",
+    "standardMileageRate": "Tasa estándar de millaje",
+    "totalBusinessMiles": "Total de millas de trabajo",
+    "totalDeduction": "Deducción total",
+    "exportCsv": "Exportar CSV",
+    "exportPdf": "Exportar PDF",
+    "empty": {
+      "title": "Todavía no hay nada que reportar",
+      "description": "Registra viajes de trabajo para generar tu reporte de millaje."
     }
   },
   "settings": {
@@ -44,6 +352,10 @@
         "dark": "Oscuro",
         "system": "Sistema"
       }
+    },
+    "account": {
+      "title": "Cuenta",
+      "description": "Administra tu inicio de sesión."
     }
   },
   "units": {
@@ -89,12 +401,49 @@
       "charts": "Gráficos"
     },
     "toastDemo": "Mostrar un toast",
-    "dialogDemo": {
-      "trigger": "Abrir diálogo",
-      "title": "¿Eliminar este viaje?",
-      "description": "Esto no se puede deshacer. El viaje y su ruta se eliminarán permanentemente.",
-      "cancel": "Cancelar",
-      "confirm": "Eliminar viaje"
+    "dialogTrigger": "Abrir diálogo",
+    "typographyDemo": {
+      "hero": "Cifra destacada — 48px o más",
+      "h1": "Encabezado 1 — 24px",
+      "h2": "Encabezado 2 — 18px",
+      "h3": "Encabezado 3 — 16px",
+      "body": "El texto normal usa 16px con peso regular para una lectura cómoda en el celular.",
+      "muted": "Texto secundario / atenuado — subtítulos, ayudas y marcas de tiempo.",
+      "proportionalLabel": "Proporcional (valores destacados):",
+      "tabularLabel": "Tabular (columnas de tablas/listas):"
+    },
+    "loadingDemo": {
+      "title": "Cargando",
+      "description": "Marcador de posición (skeleton)"
+    },
+    "chartTitles": {
+      "trend": "{metric} — últimos 7 días",
+      "byPlatform": "{metric} por plataforma"
+    },
+    "playground": {
+      "buttonSizes": {
+        "small": "Pequeño",
+        "default": "Predeterminado",
+        "large": "Grande",
+        "disabled": "Deshabilitado"
+      },
+      "inputs": {
+        "vehicleNicknameLabel": "Apodo del vehículo",
+        "vehicleNicknamePlaceholder": "Mi Civic",
+        "platformLabel": "Plataforma",
+        "disabledLabel": "Deshabilitado",
+        "disabledPlaceholder": "No editable",
+        "invalidLabel": "Inválido",
+        "invalidValue": "no es un número"
+      },
+      "tabs": {
+        "week": "Esta semana",
+        "month": "Este mes",
+        "year": "Este año",
+        "weekContent": "Mostrando las métricas de esta semana.",
+        "monthContent": "Mostrando las métricas de este mes.",
+        "yearContent": "Mostrando las métricas de este año."
+      }
     },
     "sampleEmptyState": {
       "title": "Todavía no hay viajes",
@@ -104,8 +453,5 @@
       "title": "No se pudieron cargar los viajes",
       "description": "Verifica tu conexión e intenta de nuevo."
     }
-  },
-  "common": {
-    "comingSoon": "Próximamente"
   }
 }
