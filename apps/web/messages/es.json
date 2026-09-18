@@ -69,6 +69,8 @@
     "vehicleSaved": "Vehículo guardado.",
     "vehicleDeleted": "Vehículo eliminado.",
     "offerSaved": "Oferta guardada.",
+    "tripUpdated": "Viaje actualizado.",
+    "tripDeleted": "Viaje eliminado.",
     "settingsSaved": "Configuración guardada.",
     "syncComplete": "Todo al día — ya está todo sincronizado.",
     "exportReady": "Tu reporte ya está listo para descargar."
@@ -211,6 +213,16 @@
     "title": "Viajes",
     "subtitle": "Todos los viajes que DriveWise ha registrado.",
     "addManual": "Agregar viaje manualmente",
+    "detailBack": "Volver a viajes",
+    "noVehicle": "Sin vehículo",
+    "emptyPeriod": "No hay viajes en este período.",
+    "offlineNotice": "Estás sin conexión — los viajes recientes se guardan en este dispositivo y se sincronizarán automáticamente cuando vuelvas a tener conexión.",
+    "tabs": {
+      "today": "Hoy",
+      "thisWeek": "Esta semana",
+      "thisMonth": "Este mes",
+      "all": "Todos los viajes"
+    },
     "filters": {
       "all": "Todos",
       "business": "Trabajo",
@@ -219,8 +231,14 @@
     },
     "fields": {
       "date": "Fecha",
+      "startTime": "Hora de inicio",
+      "endTime": "Hora de fin",
       "distance": "Distancia",
       "duration": "Duración",
+      "averageSpeed": "Velocidad promedio",
+      "vehicle": "Vehículo",
+      "estimatedVehicleCost": "Costo estimado del vehículo",
+      "businessMiles": "Millas de trabajo",
       "earnings": "Ganancia",
       "tips": "Propinas",
       "platform": "Plataforma",
@@ -234,6 +252,15 @@
     "source": {
       "gpsAuto": "Registrado automáticamente",
       "manual": "Agregado manualmente"
+    },
+    "syncStatus": {
+      "synced": "Sincronizado",
+      "pending": "Sincronización pendiente",
+      "error": "Error de sincronización — se reintentará"
+    },
+    "route": {
+      "title": "Ruta",
+      "empty": "No se registró una ruta GPS para este viaje."
     },
     "empty": {
       "title": "Todavía no hay viajes",

@@ -69,6 +69,8 @@
     "vehicleSaved": "Vehicle saved.",
     "vehicleDeleted": "Vehicle deleted.",
     "offerSaved": "Offer saved.",
+    "tripUpdated": "Trip updated.",
+    "tripDeleted": "Trip deleted.",
     "settingsSaved": "Settings saved.",
     "syncComplete": "All caught up — everything's synced.",
     "exportReady": "Your report is ready to download."
@@ -211,6 +213,16 @@
     "title": "Trips",
     "subtitle": "Every trip DriveWise has recorded.",
     "addManual": "Add trip manually",
+    "detailBack": "Back to trips",
+    "noVehicle": "No vehicle",
+    "emptyPeriod": "No trips in this period.",
+    "offlineNotice": "You're offline — recent trips are saved on this device and will sync automatically when you're back online.",
+    "tabs": {
+      "today": "Today",
+      "thisWeek": "This week",
+      "thisMonth": "This month",
+      "all": "All trips"
+    },
     "filters": {
       "all": "All",
       "business": "Business",
@@ -219,8 +231,14 @@
     },
     "fields": {
       "date": "Date",
+      "startTime": "Start time",
+      "endTime": "End time",
       "distance": "Distance",
       "duration": "Duration",
+      "averageSpeed": "Average speed",
+      "vehicle": "Vehicle",
+      "estimatedVehicleCost": "Estimated vehicle cost",
+      "businessMiles": "Business miles",
       "earnings": "Earnings",
       "tips": "Tips",
       "platform": "Platform",
@@ -234,6 +252,15 @@
     "source": {
       "gpsAuto": "Tracked automatically",
       "manual": "Added manually"
+    },
+    "syncStatus": {
+      "synced": "Synced",
+      "pending": "Pending sync",
+      "error": "Sync error — will retry"
+    },
+    "route": {
+      "title": "Route",
+      "empty": "No GPS route was recorded for this trip."
     },
     "empty": {
       "title": "No trips yet",

@@ -2,13 +2,14 @@ import {
   CalculatorIcon,
   CarIcon,
   LayoutDashboardIcon,
+  MapIcon,
   SettingsIcon,
   type LucideIcon,
 } from "lucide-react";
 
 export interface NavItem {
-  href: "/" | "/offers" | "/vehicles" | "/settings";
-  labelKey: "nav.dashboard" | "nav.offers" | "nav.vehicles" | "nav.settings";
+  href: "/" | "/trips" | "/offers" | "/vehicles" | "/settings";
+  labelKey: "nav.dashboard" | "nav.trips" | "nav.offers" | "nav.vehicles" | "nav.settings";
   icon: LucideIcon;
 }
 
@@ -16,6 +17,7 @@ export interface NavItem {
  * mobile tab bar both render from this list. */
 export const NAV_ITEMS: NavItem[] = [
   { href: "/", labelKey: "nav.dashboard", icon: LayoutDashboardIcon },
+  { href: "/trips", labelKey: "nav.trips", icon: MapIcon },
   { href: "/offers", labelKey: "nav.offers", icon: CalculatorIcon },
   { href: "/vehicles", labelKey: "nav.vehicles", icon: CarIcon },
   { href: "/settings", labelKey: "nav.settings", icon: SettingsIcon },

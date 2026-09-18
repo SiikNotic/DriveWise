@@ -279,6 +279,66 @@ loading the dashboard with a real, authenticated session and real trip
 history is the one thing this sandbox can't do — the same limitation
 noted throughout this README.
 
+## Trip History
+
+Browsing and managing the trips Mileage Tracking already records — the
+"planned, not yet built" list/detail view from earlier turns.
+
+- **List** (`/trips`, `components/trips/trips-list.tsx`): Today / This week /
+  This month / All trips tabs, using the same "the driver's local day, not
+  the server's" bucketing as the Dashboard. Each row shows date, start/end
+  time, duration, miles, vehicle, purpose, and sync status.
+- **The list is a merge of two sources that never overlap**
+  (`lib/trips/trip-source.ts`): trips still only in IndexedDB (not yet
+  synced — `pending_sync`/`sync_error`) and trips already synced to
+  Supabase. A trip is in exactly one list at a time: the background
+  `SyncQueue` (already built for Mileage Tracking) marks a local trip
+  "synced" the moment it pushes successfully, at which point it drops out
+  of the local list and appears in the Supabase one on the next fetch.
+  Idempotency (**no duplicar viajes durante sincronización**) was already
+  guaranteed at the sync-engine level via `unique (user_id, client_id)` +
+  upsert (see Mileage Tracking) — this feature only had to consume that
+  correctly, not re-solve it.
+- **No trip is ever lost while offline**: `listCompletedTrips` (new
+  `TripStore` method) returns every completed trip on-device regardless of
+  sync state, so a trip recorded with no connection shows up immediately
+  with a "Pending sync" badge — never silently missing until it happens to
+  sync. The Trips list also runs its own `SyncQueue.runOnce()` on mount, on
+  a 30s interval, and on the browser's `online` event (mirroring
+  `useTripRecorder`'s own polling), so pending trips flip to "Synced" live
+  even if the driver never visits the Dashboard in that session.
+- **Detail** (`/trips/[clientId]`, routed by the client-generated id since
+  that's the one identifier stable across both backends): total miles,
+  duration, average speed, start/end time, vehicle, an estimated vehicle
+  cost (using *that trip's own* assigned vehicle's cost/mile, not
+  necessarily the currently-active one), and business miles. Editing the
+  purpose or deleting a trip dispatches to a Server Action once synced, or
+  straight to IndexedDB while still local — the same dual-backend pattern
+  as the list, kept in one place (`trip-source.ts`) rather than duplicated
+  per component.
+- **Route rendering** (`components/trips/route-map.tsx`): a dependency-free
+  SVG polyline plot of the trip's recorded GPS points (equirectangular-
+  corrected so it isn't stretched), not a tile-based interactive map — this
+  project has no maps API key configured, and the points are already
+  available client-side (from `trip_points`, synced or local) without a
+  network call, so an offline-capable shape plot fits better than adding a
+  mapping dependency for one feature. Swapping in a real map later doesn't
+  touch anything else in this feature.
+- **Offline is shown explicitly**, not just implied: a banner reads "You're
+  offline — recent trips are saved on this device and will sync
+  automatically" whenever `navigator.onLine` is false, in addition to each
+  trip's own sync-status badge.
+
+**Scope boundary**: manually adding a trip (no GPS recording) is not built
+— the "Add trip manually" button visible in earlier i18n scaffolding stays
+unwired. This feature is about browsing and managing trips Mileage
+Tracking already recorded, not a second way to create one.
+
+**Verified**: typecheck/lint/build clean; `/trips` and `/trips/[clientId]`
+re-checked against a production build (redirect to login when
+unauthenticated, no runtime/RSC errors) alongside every other `(app)`
+route.
+
 ## Delivery Offer Analyzer
 
 DriveWise's main differentiating feature: before a driver taps Accept on a
@@ -652,6 +712,10 @@ this is a checklist for whoever connects the GitHub repo to Vercel.
 - A real Dashboard (see [Dashboard](#dashboard)): today's net/gross
   earnings, vehicle cost, miles, earnings per mile/hour, a rolling 7-day
   summary, and the live tracking status — no charts, exact priority order.
+- Trip History (see [Trip History](#trip-history)): a Today/This week/This
+  month/All trips list and a per-trip detail view (route rendering, edit
+  classification, delete), merging trips still local-only with ones already
+  synced so nothing recorded is ever missing or duplicated.
 - The Delivery Offer Analyzer (see
   [Delivery Offer Analyzer](#delivery-offer-analyzer)): a fast, transparent,
   multi-factor breakdown of any delivery offer against the driver's real
@@ -665,8 +729,8 @@ this is a checklist for whoever connects the GitHub repo to Vercel.
 - The actual `apps/mobile` Expo app (architecture documented in
   `apps/mobile/README.md`) — the native `LocationProvider`/`TripStore`
   implementations Mileage Tracking's abstractions are designed for.
-- Trip list/detail (browsing past trips — recording them is implemented),
-  expense CRUD, an offers list/history page (analyzing and recording a
-  decision is implemented — see
-  [Delivery Offer Analyzer](#delivery-offer-analyzer)), tax mileage
+- Manually adding a trip with no GPS recording (see
+  [Trip History](#trip-history)'s scope note), expense CRUD, an offers
+  list/history page (analyzing and recording a decision is implemented —
+  see [Delivery Offer Analyzer](#delivery-offer-analyzer)), tax mileage
   reports, performance analytics.

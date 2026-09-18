@@ -154,6 +154,13 @@ export class IndexedDbTripStore implements TripStore {
     );
   }
 
+  async listCompletedTrips(userId: string): Promise<StoredTrip[]> {
+    const trips = await this.getTripsByUser(userId);
+    return trips
+      .filter((trip) => trip.status === "completed")
+      .sort((a, b) => b.startedAt.localeCompare(a.startedAt));
+  }
+
   async markSyncStatus(
     clientId: string,
     update: {

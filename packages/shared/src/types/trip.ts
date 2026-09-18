@@ -1,5 +1,11 @@
 export type TripPurpose = "business" | "personal" | "commute";
 
+const TRIP_PURPOSES: readonly TripPurpose[] = ["business", "personal", "commute"];
+
+export function isTripPurpose(value: string): value is TripPurpose {
+  return (TRIP_PURPOSES as readonly string[]).includes(value);
+}
+
 export type TripSource = "gps_auto" | "manual";
 
 /** Whether a trip is actively being recorded on-device — see trip-recording.ts's StoredTrip for the full local-recording shape this feeds into. */

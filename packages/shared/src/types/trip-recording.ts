@@ -91,6 +91,8 @@ export interface TripStore {
 
   /** Completed trips whose syncStatus is pending_sync or sync_error and whose backoff window has elapsed. */
   listSyncable(userId: string, now: string): Promise<StoredTrip[]>;
+  /** Every completed trip on this device, any sync status, newest first — the local half of the Trips list (see trip-source.ts), merged with whatever's already synced to Supabase. */
+  listCompletedTrips(userId: string): Promise<StoredTrip[]>;
   markSyncStatus(
     clientId: string,
     update: {
