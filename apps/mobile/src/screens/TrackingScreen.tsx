@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import type { TripPurpose } from "@drivewise/shared";
 
@@ -37,10 +37,17 @@ export function TrackingScreen({ userId }: { userId: string }) {
   const isIdle = snapshot.status === "idle";
   const isPaused = snapshot.status === "paused";
 
+  // The device-level crash a driver sees on a real build carries zero
+  // detail (see ErrorBoundary.tsx's doc comment) — this try/catch is the
+  // only thing standing between "the app just closes" and "here's the
+  // exact error," for the one interaction (starting GPS tracking) that
+  // touches native modules for the first time in a session.
   async function handleStart() {
     setBusy(true);
     try {
       await start({ vehicleId, purpose });
+    } catch (error) {
+      Alert.alert("Couldn't start tracking", error instanceof Error ? `${error.message}\n\n${error.stack ?? ""}` : String(error));
     } finally {
       setBusy(false);
     }
@@ -50,6 +57,8 @@ export function TrackingScreen({ userId }: { userId: string }) {
     setBusy(true);
     try {
       await stop({});
+    } catch (error) {
+      Alert.alert("Couldn't stop tracking", error instanceof Error ? `${error.message}\n\n${error.stack ?? ""}` : String(error));
     } finally {
       setBusy(false);
     }
