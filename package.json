@@ -14,5 +14,10 @@
     "lint": "pnpm -r lint",
     "typecheck": "pnpm -r typecheck",
     "test": "pnpm -r --if-present test"
+  },
+  "pnpm": {
+    "overrides": {
+      "@types/react": "19.3.0"
+    }
   }
 }

@@ -16,8 +16,8 @@ planned](#whats-implemented-vs-planned).
 ```
 apps/
   web/       Next.js dashboard (App Router, TypeScript, Tailwind, shadcn/ui)
-  mobile/    Mobile tracking layer — architecture documented, not yet
-             scaffolded. See apps/mobile/README.md.
+  mobile/    Expo/React Native app — background GPS trip tracking.
+             See apps/mobile/README.md (implemented; not yet compiled to an APK).
 packages/
   shared/    Domain types, Supabase Database types, and the calculation
              functions (offer analyzer, vehicle cost, mileage rates,
@@ -42,7 +42,9 @@ second app is actually building.
   OS backgrounds it — there's no web API that changes that. Reliable
   background GPS needs a native app using `expo-location` +
   `expo-task-manager` (iOS `UIBackgroundModes: location`, Android foreground
-  service). See `apps/mobile/README.md` for the full design.
+  service) — implemented; see `apps/mobile/README.md` for what's actually
+  there and the one remaining step (compiling it to an APK) it can't do
+  unattended.
 
 Both apps import `@drivewise/shared` for domain types and calculations, so a
 mile or a dollar computed on one platform is computed the same way on the
@@ -1011,9 +1013,10 @@ A Vercel project is live at this point (see the badge/link in the intro).
 - A live deployment on Vercel (see [Deploying](#deploying-github--vercel)).
 
 **Planned, not yet built:**
-- The actual `apps/mobile` Expo app (architecture documented in
-  `apps/mobile/README.md`) — the native `LocationProvider`/`TripStore`
-  implementations Mileage Tracking's abstractions are designed for.
+- Compiling `apps/mobile` into an installable APK — the app itself
+  (background GPS tracking, local SQLite storage, sync, auth, trip list) is
+  implemented; see `apps/mobile/README.md`'s "Getting the APK" section for
+  the `eas build` command needed to actually produce the binary.
 - Manually adding a trip with no GPS recording (see
   [Trip History](#trip-history)'s scope note), an offers list/history page
   (analyzing and recording a decision is implemented — see
