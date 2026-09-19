@@ -11,7 +11,14 @@ android {
         // which always increases — required for installing a new build to
         // update an existing install instead of Android refusing it as a
         // downgrade. Falls back to 1 for local `./gradlew assembleDebug` runs.
-        versionCode (System.getenv("ANDROID_VERSION_CODE") ?: "1").toInteger()
+        //
+        // Note the local variable: Groovy parses `versionCode (expr).toInteger()`
+        // as `versionCode(expr).toInteger()` — calling the versionCode setter
+        // first (which returns null) and then .toInteger() on that null,
+        // failing the whole build with "Value is null". Splitting the
+        // conversion out avoids the ambiguous parse entirely.
+        def resolvedVersionCode = (System.getenv("ANDROID_VERSION_CODE") ?: "1").toInteger()
+        versionCode resolvedVersionCode
         versionName System.getenv("ANDROID_VERSION_NAME") ?: "0.1.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
