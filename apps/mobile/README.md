@@ -159,6 +159,24 @@ be created from inside a workflow file):
    creates the EAS project itself (linking `app.json`'s slug to your Expo
    account) — nothing else to configure beforehand.
 
+**Optional: crash reporting (Sentry).** There is no way to attach a
+debugger — or even read `adb logcat` — to a driver's phone, so a
+native/JSI-level crash (one below the JS runtime, which no in-app
+try/catch or React error boundary can see) is otherwise completely silent:
+the OS just shows "app has a bug, closed" with zero detail. `@sentry/react-native`
+is wired up in `App.tsx` already; it only activates once a DSN is
+configured:
+1. Create a free account at [sentry.io](https://sentry.io), create a
+   project (platform: React Native).
+2. Copy its DSN: **Settings → Projects → (your project) → Client Keys (DSN)**.
+   This is a public identifier, not a secret — safe to expose in the built app.
+3. In this GitHub repo: add it as a repository secret named `SENTRY_DSN`
+   (same place as `EXPO_TOKEN` above).
+4. The next build's "Configure Sentry DSN for the build" step sets it as
+   `EXPO_PUBLIC_SENTRY_DSN` in EAS's `preview` environment (`eas env:set`)
+   before building, so it gets embedded in the app. Without this secret
+   set, that step is skipped and `Sentry.init()` is a harmless no-op.
+
 ### 2. EAS Build from your own machine
 
 ```bash

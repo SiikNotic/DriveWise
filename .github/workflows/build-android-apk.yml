@@ -63,6 +63,15 @@ jobs:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
         run: eas init --non-interactive --force
 
+      - name: Configure Sentry DSN for the build (optional)
+        if: ${{ vars.SENTRY_DSN != '' || secrets.SENTRY_DSN != '' }}
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+          SENTRY_DSN: ${{ secrets.SENTRY_DSN || vars.SENTRY_DSN }}
+        run: |
+          eas env:set preview --name EXPO_PUBLIC_SENTRY_DSN --value "$SENTRY_DSN" \
+            --type string --visibility plaintext --non-interactive
+
       - name: Build Android APK on EAS
         id: build
         env:
