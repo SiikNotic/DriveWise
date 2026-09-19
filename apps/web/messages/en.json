@@ -167,6 +167,8 @@
     "today": "Today",
     "weekSummary": "Weekly summary",
     "weekSummarySubtitle": "Last 7 days",
+    "mileageOverview": "Mileage overview",
+    "mileageOverviewSubtitle": "Last 7 days",
     "noActivityToday": "No trips recorded today yet.",
     "syncStatus": {
       "label": "Sync status",

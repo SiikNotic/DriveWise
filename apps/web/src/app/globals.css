@@ -205,6 +205,16 @@
       0 24px 60px -24px rgba(13, 148, 136, 0.55);
   }
 
+  /* Tap feedback for tappable rows/cards (list rows, nav items) — the
+     "this responded to my touch" cue that makes a UI feel native rather
+     than like a static web page with click handlers. */
+  .pressable {
+    transition: transform 150ms ease-out, background-color 150ms ease-out;
+  }
+  .pressable:active {
+    transform: scale(0.98);
+  }
+
   /*
    * Numeric display rules (dataviz skill, "Figures"):
    * large standalone values (hero numbers, stat-tile values) use the

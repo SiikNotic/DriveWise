@@ -10,11 +10,20 @@ import {
   ReceiptIcon,
   RouteIcon,
 } from "lucide-react";
-import { formatMiles, formatUsd, formatUsdPerHour, formatUsdPerMile } from "@drivewise/shared";
+import { formatMiles, formatUsd, formatUsdPerHour, formatUsdPerMile, type TripPurpose } from "@drivewise/shared";
 
 import { createClient } from "@/lib/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { MetricCard } from "@/components/finance/metric-card";
+import { DonutGauge } from "@/components/ui/donut-gauge";
+
+const PURPOSE_MILES_EMPTY: Record<TripPurpose, number> = { business: 0, personal: 0, commute: 0 };
+
+const PURPOSE_COLOR: Record<TripPurpose, string> = {
+  business: "var(--primary)",
+  commute: "var(--chart-1)",
+  personal: "var(--chart-4)",
+};
 
 interface Totals {
   miles: number;
@@ -60,10 +69,12 @@ export function DashboardMetrics({
   const t = useTranslations("dashboard");
   const tm = useTranslations("metrics");
   const te = useTranslations("expenses");
+  const tp = useTranslations("trips.purpose");
   const locale = useLocale();
 
   const [today, setToday] = useState<Totals>(EMPTY_TOTALS);
   const [week, setWeek] = useState<Totals>(EMPTY_TOTALS);
+  const [weekMilesByPurpose, setWeekMilesByPurpose] = useState<Record<TripPurpose, number>>(PURPOSE_MILES_EMPTY);
   const [loaded, setLoaded] = useState(false);
 
   const fetchTotals = useCallback(async () => {
@@ -73,7 +84,7 @@ export function DashboardMetrics({
     const todayKey = toLocalDateKey(now);
     const weekStart = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 6, 0, 0, 0, 0);
 
-    const [{ data: trips }, { data: expenses }] = await Promise.all([
+    const [{ data: trips }, { data: expenses }, { data: allPurposeTrips }] = await Promise.all([
       supabase
         .from("trips")
         .select("distance_miles, duration_seconds, earnings_usd, tips_usd, ended_at")
@@ -84,7 +95,22 @@ export function DashboardMetrics({
         .from("expenses")
         .select("amount_usd, incurred_on")
         .gte("incurred_on", toLocalDateKey(weekStart)),
+      // Separate from the query above on purpose: the "Mileage overview"
+      // donut is about how miles split across every purpose, not just the
+      // business-only earnings math the rest of this component computes.
+      supabase
+        .from("trips")
+        .select("distance_miles, purpose")
+        .eq("status", "completed")
+        .gte("ended_at", weekStart.toISOString()),
     ]);
+
+    const purposeMiles = { ...PURPOSE_MILES_EMPTY };
+    for (const trip of allPurposeTrips ?? []) {
+      const purpose = trip.purpose as TripPurpose;
+      purposeMiles[purpose] = (purposeMiles[purpose] ?? 0) + trip.distance_miles;
+    }
+    setWeekMilesByPurpose(purposeMiles);
 
     let todayTotals = EMPTY_TOTALS;
     let weekTotals = EMPTY_TOTALS;
@@ -173,6 +199,38 @@ export function DashboardMetrics({
 
       {loaded && today.tripCount === 0 ? (
         <p className="text-muted-foreground text-center text-sm">{t("noActivityToday")}</p>
+      ) : null}
+
+      {loaded && week.miles > 0 ? (
+        <Card>
+          <CardHeader>
+            <CardTitle>{t("mileageOverview")}</CardTitle>
+            <CardDescription>{t("mileageOverviewSubtitle")}</CardDescription>
+          </CardHeader>
+          <CardContent className="flex flex-wrap items-center justify-center gap-6 sm:justify-start">
+            <DonutGauge
+              segments={(Object.keys(weekMilesByPurpose) as TripPurpose[]).map((purpose) => ({
+                value: weekMilesByPurpose[purpose],
+                color: PURPOSE_COLOR[purpose],
+              }))}
+              centerLabel={formatMiles(week.miles, locale, distanceUnitLabel)}
+              centerSublabel={tm("miles")}
+            />
+            <dl className="flex flex-col gap-2">
+              {(Object.keys(weekMilesByPurpose) as TripPurpose[]).map((purpose) => (
+                <div key={purpose} className="flex items-center gap-2 text-sm">
+                  <span
+                    className="size-2.5 shrink-0 rounded-full"
+                    style={{ backgroundColor: PURPOSE_COLOR[purpose] }}
+                    aria-hidden="true"
+                  />
+                  <dt className="text-metric">{formatMiles(weekMilesByPurpose[purpose], locale, distanceUnitLabel)}</dt>
+                  <dd className="text-muted-foreground">{tp(purpose)}</dd>
+                </div>
+              ))}
+            </dl>
+          </CardContent>
+        </Card>
       ) : null}
 
       <Card>

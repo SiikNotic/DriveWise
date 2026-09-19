@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
+import { ChevronRightIcon } from "lucide-react";
 import { SyncQueue, formatDuration, formatMiles } from "@drivewise/shared";
 
 import { Link } from "@/i18n/navigation";
@@ -144,7 +145,7 @@ export function TripsList({
               const ended = row.endedAt ? new Date(row.endedAt) : null;
               return (
                 <Link key={row.clientId} href={`/trips/${row.clientId}`} className="block">
-                  <Card className="gap-3 py-3 transition-colors hover:bg-accent/50">
+                  <Card className="pressable gap-3 py-3 transition-colors hover:bg-accent/50">
                     <CardContent className="flex flex-wrap items-center justify-between gap-3 px-4">
                       <div className="flex min-w-0 flex-col gap-1">
                         <div className="flex items-center gap-2">
@@ -159,7 +160,7 @@ export function TripsList({
                           <span>{t(`purpose.${row.purpose}`)}</span>
                         </div>
                       </div>
-                      <div className="flex items-center gap-4">
+                      <div className="flex items-center gap-3">
                         <div className="flex flex-col items-end gap-0.5">
                           <span className="text-metric text-sm">
                             {formatMiles(row.distanceMiles, locale, distanceUnitLabel)}
@@ -171,6 +172,10 @@ export function TripsList({
                         <StatusBadge tone={SYNC_TONE[row.syncStatus]}>
                           {t(`syncStatus.${row.syncStatus}`)}
                         </StatusBadge>
+                        <ChevronRightIcon
+                          className="text-muted-foreground/60 size-4 shrink-0"
+                          aria-hidden="true"
+                        />
                       </div>
                     </CardContent>
                   </Card>

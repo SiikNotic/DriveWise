@@ -167,6 +167,8 @@
     "today": "Hoy",
     "weekSummary": "Resumen semanal",
     "weekSummarySubtitle": "Últimos 7 días",
+    "mileageOverview": "Resumen de millaje",
+    "mileageOverviewSubtitle": "Últimos 7 días",
     "noActivityToday": "Todavía no hay viajes registrados hoy.",
     "syncStatus": {
       "label": "Estado de sincronización",

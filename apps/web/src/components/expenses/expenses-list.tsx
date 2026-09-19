@@ -200,7 +200,7 @@ export function ExpensesList({
                     </span>
                     <Link
                       href={`/expenses/${row.clientId}/edit`}
-                      className="flex min-w-0 flex-1 flex-col gap-1 hover:opacity-80"
+                      className="pressable flex min-w-0 flex-1 flex-col gap-1 hover:opacity-80"
                     >
                       <div className="flex items-center gap-2">
                         <span className="font-medium">{t(`category.${row.category}`)}</span>

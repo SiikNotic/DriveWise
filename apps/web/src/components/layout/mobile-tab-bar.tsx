@@ -45,7 +45,7 @@ export function MobileTabBar() {
                 href={item.href}
                 aria-current={isActive ? "page" : undefined}
                 className={cn(
-                  "flex flex-1 flex-col items-center gap-0.5 rounded-xl py-1.5 text-[11px] font-medium transition-colors",
+                  "pressable flex flex-1 flex-col items-center gap-0.5 rounded-xl py-1.5 text-[11px] font-medium transition-colors",
                   isActive ? "bg-primary/10 text-primary" : "text-muted-foreground",
                 )}
               >
@@ -59,7 +59,7 @@ export function MobileTabBar() {
             onClick={() => setMoreOpen(true)}
             aria-current={isOverflowActive ? "page" : undefined}
             className={cn(
-              "flex flex-1 flex-col items-center gap-0.5 rounded-xl py-1.5 text-[11px] font-medium transition-colors",
+              "pressable flex flex-1 flex-col items-center gap-0.5 rounded-xl py-1.5 text-[11px] font-medium transition-colors",
               isOverflowActive ? "bg-primary/10 text-primary" : "text-muted-foreground",
             )}
           >
