@@ -1,10 +1,12 @@
 # DriveWise Mobile
 
-**Status: implemented (v1) — not yet built into an installable APK.** A real
-Expo/React Native app with background GPS tracking, offline-first local
-storage, and the same Supabase backend `apps/web` uses. See
-[Getting the APK](#getting-the-apk) for the one thing this repo can't do on
-its own: produce the compiled binary.
+**Status: implemented (v1) and building successfully.** A real Expo/React
+Native app with background GPS tracking, offline-first local storage, and
+the same Supabase backend `apps/web` uses. The GitHub Actions pipeline in
+[Getting the APK](#getting-the-apk) has produced a real, installable
+`drivewise.apk`, published at
+https://github.com/SiikNotic/DriveWise/releases — that page always has the
+latest build.
 
 ## Why this has to be a native app, not the web dashboard
 
@@ -179,9 +181,16 @@ Needs the Android SDK installed locally. No Expo account or network
 dependency on Expo's servers — useful if you want a build pipeline that
 doesn't depend on EAS at all.
 
-None of these three has actually been run against this code yet — options
-1 and 2 need network access to Expo's build servers, and option 3 needs a
-local Android SDK; this increment was built in an environment with none of
-the three available. The code has been typechecked and is believed
-correct, but "produces a working APK" is unverified until one of the paths
-above actually runs.
+Option 1 has been run for real and produces a working, installable APK —
+see https://github.com/SiikNotic/DriveWise/releases for the latest one.
+Getting there took a few real CI-only bugs, fixed in the workflow's commit
+history: a `pnpm/action-setup` version conflict with this repo's
+`packageManager` field, the EAS project needing `owner` in `app.json` and
+`eas init --non-interactive --force` to link/create it under a robot
+token (which can't answer interactive prompts), and a `metro.config.js`
+bug (`disableHierarchicalLookup: true`) that broke resolution of pnpm's
+nested transitive dependencies during the JS bundling phase. Options 2 and
+3 haven't been run from this environment (no network to Expo's servers, no
+local Android SDK) but use the same `eas.json`/`app.json` config that's
+now confirmed working, so they should work the same way from a machine
+that has what they need.
