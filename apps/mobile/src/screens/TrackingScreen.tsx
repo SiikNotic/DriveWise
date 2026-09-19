@@ -1,11 +1,8 @@
 import { useEffect, useState } from "react";
-import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 import type { TripPurpose } from "@drivewise/shared";
 
 import { supabase } from "../lib/supabase";
 import { useTripRecorder } from "../hooks/use-trip-recorder";
-import { colors } from "../theme";
 
 const PURPOSES: TripPurpose[] = ["business", "personal", "commute"];
 
@@ -37,17 +34,12 @@ export function TrackingScreen({ userId }: { userId: string }) {
   const isIdle = snapshot.status === "idle";
   const isPaused = snapshot.status === "paused";
 
-  // The device-level crash a driver sees on a real build carries zero
-  // detail (see ErrorBoundary.tsx's doc comment) — this try/catch is the
-  // only thing standing between "the app just closes" and "here's the
-  // exact error," for the one interaction (starting GPS tracking) that
-  // touches native modules for the first time in a session.
   async function handleStart() {
     setBusy(true);
     try {
       await start({ vehicleId, purpose });
     } catch (error) {
-      Alert.alert("Couldn't start tracking", error instanceof Error ? `${error.message}\n\n${error.stack ?? ""}` : String(error));
+      window.alert(error instanceof Error ? error.message : String(error));
     } finally {
       setBusy(false);
     }
@@ -58,138 +50,116 @@ export function TrackingScreen({ userId }: { userId: string }) {
     try {
       await stop({});
     } catch (error) {
-      Alert.alert("Couldn't stop tracking", error instanceof Error ? `${error.message}\n\n${error.stack ?? ""}` : String(error));
+      window.alert(error instanceof Error ? error.message : String(error));
     } finally {
       setBusy(false);
     }
   }
 
   return (
-    <SafeAreaView style={styles.container} edges={["top"]}>
-      <ScrollView contentContainerStyle={styles.content}>
-        <Text style={styles.title}>Tracking</Text>
+    <div className="min-h-screen bg-background pb-24">
+      <div className="space-y-4 p-4">
+        <h1 className="text-2xl font-bold text-foreground">Tracking</h1>
 
         {justRecovered ? (
-          <View style={styles.notice}>
-            <Text style={styles.noticeText}>
-              Picked up a trip that was interrupted — resume when you&apos;re ready.
-            </Text>
-          </View>
+          <div className="rounded-xl bg-amber-50 p-3">
+            <p className="text-sm text-foreground">Picked up a trip that was interrupted — resume when you&apos;re ready.</p>
+          </div>
         ) : null}
 
         {snapshot.lastError === "permission_denied" ? (
-          <View style={styles.errorBanner}>
-            <Text style={styles.errorText}>
-              Location access was denied. Enable it in your device settings to track trips.
-            </Text>
-          </View>
+          <div className="rounded-xl bg-red-50 p-3">
+            <p className="text-sm text-destructive">Location access was denied. Enable it in your device settings to track trips.</p>
+          </div>
         ) : null}
 
         {isIdle ? (
-          <View style={styles.card}>
-            <Text style={styles.label}>Vehicle</Text>
-            <View style={styles.chipRow}>
+          <div className="space-y-3 rounded-2xl border border-border bg-card p-4">
+            <p className="text-xs font-semibold uppercase text-muted-foreground">Vehicle</p>
+            <div className="flex flex-wrap gap-2">
               {vehicles.map((vehicle) => (
-                <Pressable
+                <button
                   key={vehicle.id}
-                  onPress={() => setVehicleId(vehicle.id)}
-                  style={[styles.chip, vehicleId === vehicle.id && styles.chipActive]}
+                  onClick={() => setVehicleId(vehicle.id)}
+                  className={`rounded-full border px-3.5 py-2 text-sm ${
+                    vehicleId === vehicle.id
+                      ? "border-primary bg-primary text-primary-foreground"
+                      : "border-border text-foreground"
+                  }`}
                 >
-                  <Text style={[styles.chipText, vehicleId === vehicle.id && styles.chipTextActive]}>
-                    {vehicle.nickname}
-                  </Text>
-                </Pressable>
+                  {vehicle.nickname}
+                </button>
               ))}
-              {vehicles.length === 0 ? <Text style={styles.mutedText}>No vehicles yet</Text> : null}
-            </View>
+              {vehicles.length === 0 ? <p className="text-sm text-muted-foreground">No vehicles yet</p> : null}
+            </div>
 
-            <Text style={styles.label}>Purpose</Text>
-            <View style={styles.chipRow}>
+            <p className="text-xs font-semibold uppercase text-muted-foreground">Purpose</p>
+            <div className="flex flex-wrap gap-2">
               {PURPOSES.map((value) => (
-                <Pressable
+                <button
                   key={value}
-                  onPress={() => setPurpose(value)}
-                  style={[styles.chip, purpose === value && styles.chipActive]}
+                  onClick={() => setPurpose(value)}
+                  className={`rounded-full border px-3.5 py-2 text-sm capitalize ${
+                    purpose === value ? "border-primary bg-primary text-primary-foreground" : "border-border text-foreground"
+                  }`}
                 >
-                  <Text style={[styles.chipText, purpose === value && styles.chipTextActive]}>{value}</Text>
-                </Pressable>
+                  {value}
+                </button>
               ))}
-            </View>
+            </div>
 
-            <Pressable style={[styles.primaryButton, busy && styles.disabled]} onPress={handleStart} disabled={busy}>
-              <Text style={styles.primaryButtonText}>Start Tracking</Text>
-            </Pressable>
-          </View>
+            <button
+              className="w-full rounded-lg bg-primary py-3.5 text-base font-semibold text-primary-foreground disabled:opacity-60"
+              onClick={() => void handleStart()}
+              disabled={busy}
+            >
+              Start Tracking
+            </button>
+          </div>
         ) : (
-          <View style={styles.card}>
-            <View style={styles.statsRow}>
-              <View style={styles.stat}>
-                <Text style={styles.statLabel}>Distance</Text>
-                <Text style={styles.statValue}>{snapshot.distanceMiles.toFixed(1)} mi</Text>
-              </View>
-              <View style={styles.stat}>
-                <Text style={styles.statLabel}>Duration</Text>
-                <Text style={styles.statValue}>{formatDuration(snapshot.durationSeconds)}</Text>
-              </View>
-            </View>
-            <Text style={styles.gpsStatus}>GPS: {snapshot.gpsStatus}</Text>
+          <div className="space-y-3 rounded-2xl border border-border bg-card p-4">
+            <div className="flex justify-around">
+              <div className="space-y-1 text-center">
+                <p className="text-xs text-muted-foreground">Distance</p>
+                <p className="text-3xl font-bold text-foreground">{snapshot.distanceMiles.toFixed(1)} mi</p>
+              </div>
+              <div className="space-y-1 text-center">
+                <p className="text-xs text-muted-foreground">Duration</p>
+                <p className="text-3xl font-bold text-foreground">{formatDuration(snapshot.durationSeconds)}</p>
+              </div>
+            </div>
+            <p className="text-center text-xs text-muted-foreground">GPS: {snapshot.gpsStatus}</p>
 
-            <View style={styles.buttonRow}>
+            <div className="flex gap-2">
               {isPaused ? (
-                <Pressable style={[styles.primaryButton, styles.flexButton]} onPress={() => void resume()}>
-                  <Text style={styles.primaryButtonText}>Resume</Text>
-                </Pressable>
+                <button
+                  className="flex-1 rounded-lg bg-primary py-3.5 text-base font-semibold text-primary-foreground"
+                  onClick={() => void resume()}
+                >
+                  Resume
+                </button>
               ) : (
-                <Pressable style={[styles.secondaryButton, styles.flexButton]} onPress={() => void pause()}>
-                  <Text style={styles.secondaryButtonText}>Pause</Text>
-                </Pressable>
+                <button
+                  className="flex-1 rounded-lg border border-border bg-card py-3.5 text-base font-semibold text-foreground"
+                  onClick={() => void pause()}
+                >
+                  Pause
+                </button>
               )}
-              <Pressable
-                style={[styles.primaryButton, styles.flexButton, busy && styles.disabled]}
-                onPress={handleStop}
+              <button
+                className="flex-1 rounded-lg bg-primary py-3.5 text-base font-semibold text-primary-foreground disabled:opacity-60"
+                onClick={() => void handleStop()}
                 disabled={busy}
               >
-                <Text style={styles.primaryButtonText}>Stop</Text>
-              </Pressable>
-            </View>
-            <Pressable style={styles.destructiveLink} onPress={() => void discard()} disabled={busy}>
-              <Text style={styles.destructiveLinkText}>Discard trip</Text>
-            </Pressable>
-          </View>
+                Stop
+              </button>
+            </div>
+            <button className="w-full pt-1 text-center text-sm text-destructive" onClick={() => void discard()} disabled={busy}>
+              Discard trip
+            </button>
+          </div>
         )}
-      </ScrollView>
-    </SafeAreaView>
+      </div>
+    </div>
   );
 }
-
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.background },
-  content: { padding: 16, gap: 16 },
-  title: { fontSize: 24, fontWeight: "700", color: colors.foreground },
-  notice: { backgroundColor: "#fff8e6", borderRadius: 10, padding: 12 },
-  noticeText: { color: colors.foreground, fontSize: 13 },
-  errorBanner: { backgroundColor: "#fbe9e7", borderRadius: 10, padding: 12 },
-  errorText: { color: colors.destructive, fontSize: 13 },
-  card: { backgroundColor: colors.card, borderRadius: 14, padding: 16, gap: 12, borderWidth: 1, borderColor: colors.border },
-  label: { fontSize: 13, fontWeight: "600", color: colors.mutedForeground, textTransform: "uppercase" },
-  chipRow: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
-  chip: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 999, borderWidth: 1, borderColor: colors.border },
-  chipActive: { backgroundColor: colors.primary, borderColor: colors.primary },
-  chipText: { color: colors.foreground, fontSize: 14, textTransform: "capitalize" },
-  chipTextActive: { color: colors.primaryForeground },
-  mutedText: { color: colors.mutedForeground, fontSize: 13 },
-  primaryButton: { backgroundColor: colors.primary, borderRadius: 10, paddingVertical: 14, alignItems: "center" },
-  primaryButtonText: { color: colors.primaryForeground, fontSize: 16, fontWeight: "600" },
-  secondaryButton: { backgroundColor: colors.card, borderRadius: 10, paddingVertical: 14, alignItems: "center", borderWidth: 1, borderColor: colors.border },
-  secondaryButtonText: { color: colors.foreground, fontSize: 16, fontWeight: "600" },
-  disabled: { opacity: 0.6 },
-  statsRow: { flexDirection: "row", justifyContent: "space-around" },
-  stat: { alignItems: "center", gap: 4 },
-  statLabel: { fontSize: 12, color: colors.mutedForeground },
-  statValue: { fontSize: 28, fontWeight: "700", color: colors.foreground },
-  gpsStatus: { textAlign: "center", fontSize: 12, color: colors.mutedForeground },
-  buttonRow: { flexDirection: "row", gap: 8 },
-  flexButton: { flex: 1 },
-  destructiveLink: { alignItems: "center", paddingTop: 4 },
-  destructiveLinkText: { color: colors.destructive, fontSize: 13 },
-});

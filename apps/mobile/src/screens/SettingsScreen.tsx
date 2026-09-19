@@ -1,32 +1,21 @@
-import { Pressable, StyleSheet, Text, View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
-
 import { supabase } from "../lib/supabase";
-import { colors } from "../theme";
 
 export function SettingsScreen({ email }: { email: string | undefined }) {
   return (
-    <SafeAreaView style={styles.container} edges={["top"]}>
-      <Text style={styles.title}>Settings</Text>
+    <div className="min-h-screen space-y-4 bg-background p-4 pb-24">
+      <h1 className="text-2xl font-bold text-foreground">Settings</h1>
 
-      <View style={styles.card}>
-        <Text style={styles.label}>Signed in as</Text>
-        <Text style={styles.email}>{email}</Text>
-      </View>
+      <div className="space-y-1 rounded-xl border border-border bg-card p-4">
+        <p className="text-xs text-muted-foreground">Signed in as</p>
+        <p className="text-base font-semibold text-foreground">{email}</p>
+      </div>
 
-      <Pressable style={styles.signOutButton} onPress={() => void supabase.auth.signOut()}>
-        <Text style={styles.signOutText}>Sign out</Text>
-      </Pressable>
-    </SafeAreaView>
+      <button
+        className="w-full rounded-lg border border-destructive py-3.5 text-base font-semibold text-destructive"
+        onClick={() => void supabase.auth.signOut()}
+      >
+        Sign out
+      </button>
+    </div>
   );
 }
-
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.background, padding: 16, gap: 16 },
-  title: { fontSize: 24, fontWeight: "700", color: colors.foreground },
-  card: { backgroundColor: colors.card, borderRadius: 12, borderWidth: 1, borderColor: colors.border, padding: 16, gap: 4 },
-  label: { fontSize: 12, color: colors.mutedForeground },
-  email: { fontSize: 16, color: colors.foreground, fontWeight: "600" },
-  signOutButton: { borderRadius: 10, borderWidth: 1, borderColor: colors.destructive, paddingVertical: 14, alignItems: "center" },
-  signOutText: { color: colors.destructive, fontSize: 16, fontWeight: "600" },
-});

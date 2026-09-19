@@ -1,9 +1,8 @@
 import { useCallback, useEffect, useState } from "react";
-import * as Crypto from "expo-crypto";
 import { SyncQueue, TripRecorder, type StartTripInput, type TripRecorderSnapshot } from "@drivewise/shared";
 
-import { ExpoLocationProvider } from "../lib/location/expo-location-provider";
-import { SqliteTripStore } from "../lib/storage/sqlite-trip-store";
+import { CapacitorLocationProvider } from "../lib/location/capacitor-location-provider";
+import { IndexedDbTripStore } from "../lib/storage/indexeddb-trip-store";
 import { SupabaseSyncTransport } from "../lib/sync/supabase-sync-transport";
 import { useOnlineStatusRef } from "./use-online-status";
 
@@ -22,20 +21,21 @@ const IDLE_SNAPSHOT: TripRecorderSnapshot = {
 
 /**
  * Wires the platform-agnostic TripRecorder/SyncQueue (packages/shared) to
- * this platform's implementations (SQLite, expo-location's background task,
- * Supabase) and to React — the mobile counterpart of apps/web's
- * use-trip-recorder.ts. Everything it calls into is unchanged from the web
- * hook's own engine; only the three platform implementations differ.
+ * this platform's implementations (IndexedDB, Capacitor's background
+ * geolocation plugin, Supabase) and to React — the mobile counterpart of
+ * apps/web's use-trip-recorder.ts. Everything it calls into is unchanged
+ * from the web hook's own engine; only the three platform implementations
+ * differ.
  */
 export function useTripRecorder(userId: string) {
   const isOnlineRef = useOnlineStatusRef();
 
   const [engine] = useState(() => {
-    const tripStore = new SqliteTripStore();
+    const tripStore = new IndexedDbTripStore();
     const recorder = new TripRecorder({
-      locationProvider: new ExpoLocationProvider(),
+      locationProvider: new CapacitorLocationProvider(),
       tripStore,
-      generateId: () => Crypto.randomUUID(),
+      generateId: () => crypto.randomUUID(),
     });
     const syncQueue = new SyncQueue({
       store: tripStore,
@@ -59,9 +59,9 @@ export function useTripRecorder(userId: string) {
   }, [engine, userId]);
 
   // Drain the sync queue: immediately, and on an interval. (No "just came
-  // back online" push here the way the web hook has one — NetInfo's
-  // listener already re-fires and this interval picks it up within
-  // SYNC_POLL_INTERVAL_MS regardless.)
+  // back online" push here the way the web hook has one — the browser's
+  // online/offline listener already re-fires and this interval picks it up
+  // within SYNC_POLL_INTERVAL_MS regardless.)
   useEffect(() => {
     void engine.syncQueue.runOnce(userId);
     const interval = setInterval(() => void engine.syncQueue.runOnce(userId), SYNC_POLL_INTERVAL_MS);

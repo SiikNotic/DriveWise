@@ -1,7 +1,7 @@
 import type { StoredTrip, SyncStatus, TripPurpose } from "@drivewise/shared";
 
 import { supabase } from "./supabase";
-import { SqliteTripStore } from "./storage/sqlite-trip-store";
+import { IndexedDbTripStore } from "./storage/indexeddb-trip-store";
 
 const MAX_SERVER_TRIPS = 500;
 
@@ -37,7 +37,7 @@ function storedTripToRow(trip: StoredTrip): TripListRow {
 }
 
 export async function fetchTripRows(userId: string): Promise<TripListRow[]> {
-  const tripStore = new SqliteTripStore();
+  const tripStore = new IndexedDbTripStore();
 
   const [localTrips, { data: serverTrips }] = await Promise.all([
     tripStore.listCompletedTrips(userId),

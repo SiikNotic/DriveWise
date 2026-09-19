@@ -1,19 +1,17 @@
 name: Build Android APK
 
-# Builds apps/mobile into an installable .apk and publishes it as a GitHub
-# Release asset, so drivers get "download/update from GitHub" instead of an
-# Expo dashboard link. The actual compile happens on Expo's own EAS Build
-# cloud (`eas build`) — this workflow just triggers it, downloads the
-# result, and attaches it here; no Android SDK is installed on the runner
-# because none of the compilation happens on the runner itself.
+# Builds apps/mobile (a Capacitor app: a Vite/React web app wrapped in a
+# real, committed native Android project at apps/mobile/android) into an
+# installable .apk and publishes it as a GitHub Release asset, so drivers
+# get "download/update from GitHub."
 #
-# One-time setup this workflow depends on (can't be done from a workflow
-# file — see apps/mobile/README.md's "Getting the APK" section):
-#   1. A free Expo account, linked once to this project (the first run
-#      creates the EAS project automatically if none exists yet).
-#   2. An access token from https://expo.dev/accounts/<you>/settings/access-tokens
-#   3. That token saved as a repository secret named EXPO_TOKEN
-#      (Settings > Secrets and variables > Actions > New repository secret).
+# Unlike the earlier Expo/EAS-based pipeline this replaced, the entire
+# build happens directly on this runner via the Android SDK GitHub's
+# ubuntu-latest images already ship with — no third-party cloud build
+# service, no opaque remote logs, no EXPO_TOKEN. `./gradlew assembleDebug`
+# produces a debug-signed APK using Gradle's own auto-generated debug
+# keystore, which is exactly what "sideload this on a driver's phone to
+# test" needs — no signing secrets to manage.
 
 on:
   push:
@@ -45,58 +43,47 @@ jobs:
         working-directory: .
         run: pnpm install --frozen-lockfile
 
-      - name: Install EAS CLI
-        run: npm install -g eas-cli
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
 
-      - name: Verify Expo/EAS auth
+      - name: Verify required secrets are set
         env:
-          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
         run: |
-          if [ -z "$EXPO_TOKEN" ]; then
-            echo "::error::EXPO_TOKEN repository secret is not set — see apps/mobile/README.md's 'Getting the APK' section for how to create one."
+          if [ -z "$VITE_SUPABASE_URL" ] || [ -z "$VITE_SUPABASE_PUBLISHABLE_KEY" ]; then
+            echo "::error::VITE_SUPABASE_URL and/or VITE_SUPABASE_PUBLISHABLE_KEY repository secrets are not set — see apps/mobile/README.md's 'Getting the APK' section."
             exit 1
           fi
-          eas whoami
 
-      - name: Ensure EAS project is linked
+      - name: Build the web app
         env:
-          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
-        run: eas init --non-interactive --force
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
+          VITE_SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
+        run: pnpm build
 
-      - name: Configure Sentry DSN for the build (optional)
+      - name: Sync the built web app into the native Android project
+        run: npx cap sync android
+
+      - name: Build the debug APK
+        working-directory: apps/mobile/android
         env:
-          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
-          SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
-        run: |
-          if [ -z "$SENTRY_DSN" ]; then
-            echo "SENTRY_DSN repository secret not set — skipping, Sentry.init() stays a no-op. See apps/mobile/README.md's 'Getting the APK' section to enable crash reporting."
-            exit 0
-          fi
-          eas env:set preview --name EXPO_PUBLIC_SENTRY_DSN --value "$SENTRY_DSN" \
-            --type string --visibility plaintext --non-interactive
+          # Always increasing across every run of this workflow — see the
+          # comment on versionCode in app/build.gradle for why that matters.
+          ANDROID_VERSION_CODE: ${{ github.run_number }}
+        run: ./gradlew assembleDebug --no-daemon
 
-      - name: Build Android APK on EAS
-        id: build
-        env:
-          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
-        run: |
-          eas build --platform android --profile preview --non-interactive --wait --json > build-result.json || BUILD_FAILED=1
-          cat build-result.json
-          if [ -n "$BUILD_FAILED" ]; then
-            echo "::error::eas build failed — see the build-result.json contents printed above for the reason."
-            exit 1
-          fi
-          echo "artifact_url=$(node -e "console.log(JSON.parse(require('fs').readFileSync('build-result.json','utf8'))[0].artifacts.buildUrl)")" >> "$GITHUB_OUTPUT"
-          echo "build_version=$(node -e "console.log(JSON.parse(require('fs').readFileSync('build-result.json','utf8'))[0].appVersion)")" >> "$GITHUB_OUTPUT"
-
-      - name: Download the built APK
-        run: curl -fL -o drivewise.apk "${{ steps.build.outputs.artifact_url }}"
+      - name: Stage the APK for release
+        run: cp android/app/build/outputs/apk/debug/app-debug.apk drivewise.apk
 
       - name: Publish to GitHub Releases
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ github.ref_type == 'tag' && github.ref_name || format('mobile-run-{0}', github.run_number) }}
-          name: DriveWise Android v${{ steps.build.outputs.build_version }}
+          name: DriveWise Android (Capacitor)
           files: apps/mobile/drivewise.apk
           body: |
             Automated build from commit ${{ github.sha }}.

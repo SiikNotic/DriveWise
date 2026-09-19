@@ -1,13 +1,9 @@
 import { useCallback, useEffect, useState } from "react";
-import { FlatList, RefreshControl, StyleSheet, Text, View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { SyncQueue } from "@drivewise/shared";
 
-import { supabase } from "../lib/supabase";
-import { SqliteTripStore } from "../lib/storage/sqlite-trip-store";
+import { IndexedDbTripStore } from "../lib/storage/indexeddb-trip-store";
 import { SupabaseSyncTransport } from "../lib/sync/supabase-sync-transport";
 import { fetchTripRows, type TripListRow } from "../lib/trip-source";
-import { colors } from "../theme";
 
 const SYNC_LABEL: Record<TripListRow["syncStatus"], string> = {
   local: "Saved on this device",
@@ -18,8 +14,7 @@ const SYNC_LABEL: Record<TripListRow["syncStatus"], string> = {
 };
 
 function formatDate(iso: string): string {
-  const date = new Date(iso);
-  return date.toLocaleDateString(undefined, { month: "short", day: "numeric" });
+  return new Date(iso).toLocaleDateString(undefined, { month: "short", day: "numeric" });
 }
 
 export function TripsScreen({ userId }: { userId: string }) {
@@ -34,7 +29,7 @@ export function TripsScreen({ userId }: { userId: string }) {
   }, [userId]);
 
   useEffect(() => {
-    const tripStore = new SqliteTripStore();
+    const tripStore = new IndexedDbTripStore();
     const syncQueue = new SyncQueue({
       store: tripStore,
       transport: new SupabaseSyncTransport(tripStore),
@@ -50,52 +45,33 @@ export function TripsScreen({ userId }: { userId: string }) {
   }
 
   return (
-    <SafeAreaView style={styles.container} edges={["top"]}>
-      <Text style={styles.title}>Trips</Text>
-      <FlatList
-        data={rows}
-        keyExtractor={(row) => row.clientId}
-        contentContainerStyle={styles.listContent}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />}
-        ListEmptyComponent={
-          loaded ? <Text style={styles.empty}>No trips yet — start tracking to record one.</Text> : null
-        }
-        renderItem={({ item }) => (
-          <View style={styles.row}>
-            <View style={styles.rowMain}>
-              <Text style={styles.rowDate}>{formatDate(item.startedAt)}</Text>
-              <Text style={styles.rowPurpose}>{item.purpose}</Text>
-            </View>
-            <View style={styles.rowEnd}>
-              <Text style={styles.rowDistance}>{item.distanceMiles.toFixed(1)} mi</Text>
-              <Text style={styles.rowSync}>{SYNC_LABEL[item.syncStatus]}</Text>
-            </View>
-          </View>
-        )}
-      />
-    </SafeAreaView>
+    <div className="min-h-screen bg-background pb-24">
+      <div className="flex items-center justify-between px-4 pt-4">
+        <h1 className="text-2xl font-bold text-foreground">Trips</h1>
+        <button className="text-sm text-primary disabled:opacity-60" onClick={() => void handleRefresh()} disabled={refreshing}>
+          {refreshing ? "Refreshing…" : "Refresh"}
+        </button>
+      </div>
+      <div className="space-y-2 p-4">
+        {loaded && rows.length === 0 ? (
+          <p className="mt-8 text-center text-muted-foreground">No trips yet — start tracking to record one.</p>
+        ) : null}
+        {rows.map((row) => (
+          <div
+            key={row.clientId}
+            className="flex items-center justify-between rounded-xl border border-border bg-card p-3.5"
+          >
+            <div className="space-y-0.5">
+              <p className="text-base font-semibold text-foreground">{formatDate(row.startedAt)}</p>
+              <p className="text-xs capitalize text-muted-foreground">{row.purpose}</p>
+            </div>
+            <div className="space-y-0.5 text-right">
+              <p className="text-base font-semibold text-foreground">{row.distanceMiles.toFixed(1)} mi</p>
+              <p className="text-xs text-muted-foreground">{SYNC_LABEL[row.syncStatus]}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
   );
 }
-
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.background },
-  title: { fontSize: 24, fontWeight: "700", color: colors.foreground, paddingHorizontal: 16, paddingTop: 8 },
-  listContent: { padding: 16, gap: 8 },
-  empty: { color: colors.mutedForeground, textAlign: "center", marginTop: 32 },
-  row: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    backgroundColor: colors.card,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: colors.border,
-    padding: 14,
-  },
-  rowMain: { gap: 2 },
-  rowDate: { fontSize: 15, fontWeight: "600", color: colors.foreground },
-  rowPurpose: { fontSize: 12, color: colors.mutedForeground, textTransform: "capitalize" },
-  rowEnd: { alignItems: "flex-end", gap: 2 },
-  rowDistance: { fontSize: 15, fontWeight: "600", color: colors.foreground },
-  rowSync: { fontSize: 11, color: colors.mutedForeground },
-});

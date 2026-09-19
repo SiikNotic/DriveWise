@@ -1,39 +1,37 @@
 {
   "name": "@drivewise/mobile",
-  "version": "0.1.0",
   "private": true,
-  "main": "index.ts",
+  "version": "0.1.0",
+  "type": "module",
   "scripts": {
-    "start": "expo start",
-    "android": "expo run:android",
-    "ios": "expo run:ios",
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
     "typecheck": "tsc --noEmit",
-    "prebuild": "expo prebuild --platform android"
+    "cap:sync": "pnpm build && npx cap sync android"
   },
   "dependencies": {
+    "@capacitor-community/background-geolocation": "^1.2.26",
+    "@capacitor/android": "^8.5.2",
+    "@capacitor/app": "^8.1.1",
+    "@capacitor/core": "^8.5.2",
+    "@capacitor/local-notifications": "^8.3.1",
     "@drivewise/shared": "workspace:*",
-    "@react-native-async-storage/async-storage": "2.2.0",
-    "@react-native-community/netinfo": "12.0.1",
-    "@react-navigation/bottom-tabs": "^7.4.8",
-    "@react-navigation/native": "^7.1.18",
-    "@react-navigation/native-stack": "^7.4.7",
-    "@sentry/react-native": "~7.11.0",
+    "@sentry/capacitor": "^4.4.0",
+    "@sentry/react": "10.69.0",
     "@supabase/supabase-js": "^2.116.0",
-    "expo": "~57.0.24",
-    "expo-crypto": "~57.0.3",
-    "expo-location": "~57.0.19",
-    "expo-sqlite": "~57.0.3",
-    "expo-status-bar": "~57.0.1",
-    "expo-task-manager": "~57.0.19",
-    "react": "19.2.3",
-    "react-native": "0.86.3",
-    "react-native-get-random-values": "~1.11.0",
-    "react-native-safe-area-context": "~5.7.0",
-    "react-native-screens": "~4.26.0",
-    "react-native-url-polyfill": "~2.0.0"
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
   },
   "devDependencies": {
-    "@types/react": "~19.2.2",
-    "typescript": "~6.0.3"
+    "@capacitor/cli": "^8.5.2",
+    "@types/react": "^18.3.3",
+    "@types/react-dom": "^18.3.0",
+    "@vitejs/plugin-react": "^4.3.1",
+    "autoprefixer": "^10.4.19",
+    "postcss": "^8.4.40",
+    "tailwindcss": "^3.4.7",
+    "typescript": "^5.5.4",
+    "vite": "^5.3.5"
   }
 }

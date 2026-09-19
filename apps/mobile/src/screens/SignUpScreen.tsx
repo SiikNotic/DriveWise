@@ -1,15 +1,8 @@
 import { useState } from "react";
-import { ActivityIndicator, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
-import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 
 import { supabase } from "../lib/supabase";
-import { colors } from "../theme";
-import type { AuthStackParamList } from "../navigation/types";
 
-type Props = NativeStackScreenProps<AuthStackParamList, "SignUp">;
-
-export function SignUpScreen({ navigation }: Props) {
+export function SignUpScreen({ onSwitchToLogin }: { onSwitchToLogin: () => void }) {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
@@ -21,11 +14,11 @@ export function SignUpScreen({ navigation }: Props) {
   async function handleSignUp() {
     setError(null);
     setBusy(true);
-    // No emailRedirectTo here (unlike apps/web's signup): there's no web
-    // page for a confirmation link to land on in a mobile app context, so
-    // this relies on the Supabase project's email-confirmation setting —
-    // if it requires confirmation, the driver confirms via the browser and
-    // then simply logs in from this same screen.
+    // No emailRedirectTo (unlike apps/web's signup): a driver confirming
+    // via a mobile browser has no app deep link to land back on, so this
+    // relies on the Supabase project's email-confirmation setting — if it
+    // requires confirmation, the driver confirms via the browser and then
+    // simply logs in from this same screen.
     const { data, error: signUpError } = await supabase.auth.signUp({
       email,
       password,
@@ -40,111 +33,77 @@ export function SignUpScreen({ navigation }: Props) {
       setCheckEmail(true);
     }
     // If a session came back immediately (email confirmation disabled),
-    // the RootNavigator's session listener switches to the app stack.
+    // App.tsx's session listener switches to the app tabs.
   }
 
   if (checkEmail) {
     return (
-      <SafeAreaView style={styles.container}>
-        <View style={styles.form}>
-          <Text style={styles.title}>Check your email</Text>
-          <Text style={styles.subtitle}>
+      <div className="flex min-h-screen flex-col justify-center bg-background px-6">
+        <div className="space-y-3">
+          <h1 className="text-center text-2xl font-bold text-foreground">Check your email</h1>
+          <p className="text-center text-sm text-muted-foreground">
             We sent a confirmation link to {email}. Confirm it, then come back and sign in.
-          </Text>
-          <Pressable onPress={() => navigation.navigate("Login")}>
-            <Text style={styles.link}>Back to sign in</Text>
-          </Pressable>
-        </View>
-      </SafeAreaView>
+          </p>
+          <button className="mt-2 w-full text-center text-sm text-primary" onClick={onSwitchToLogin}>
+            Back to sign in
+          </button>
+        </div>
+      </div>
     );
   }
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.form}>
-        <Text style={styles.title}>Create your account</Text>
-        <Text style={styles.subtitle}>Start tracking miles and earnings in minutes.</Text>
+    <div className="flex min-h-screen flex-col justify-center bg-background px-6">
+      <div className="space-y-3">
+        <h1 className="text-center text-2xl font-bold text-foreground">Create your account</h1>
+        <p className="text-center text-sm text-muted-foreground">Start tracking miles and earnings in minutes.</p>
 
-        {error ? <Text style={styles.error}>{error}</Text> : null}
+        {error ? <p className="text-center text-sm text-destructive">{error}</p> : null}
 
-        <View style={styles.row}>
-          <TextInput
-            style={[styles.input, styles.rowInput]}
+        <div className="flex gap-2">
+          <input
+            className="w-full flex-1 rounded-lg border border-border bg-card px-3.5 py-3 text-base text-foreground"
             placeholder="First name"
             value={firstName}
-            onChangeText={setFirstName}
+            onChange={(e) => setFirstName(e.target.value)}
           />
-          <TextInput
-            style={[styles.input, styles.rowInput]}
+          <input
+            className="w-full flex-1 rounded-lg border border-border bg-card px-3.5 py-3 text-base text-foreground"
             placeholder="Last name"
             value={lastName}
-            onChangeText={setLastName}
+            onChange={(e) => setLastName(e.target.value)}
           />
-        </View>
-        <TextInput
-          style={styles.input}
+        </div>
+        <input
+          className="w-full rounded-lg border border-border bg-card px-3.5 py-3 text-base text-foreground"
           placeholder="Email"
+          type="email"
           autoCapitalize="none"
           autoComplete="email"
-          keyboardType="email-address"
           value={email}
-          onChangeText={setEmail}
+          onChange={(e) => setEmail(e.target.value)}
         />
-        <TextInput
-          style={styles.input}
+        <input
+          className="w-full rounded-lg border border-border bg-card px-3.5 py-3 text-base text-foreground"
           placeholder="Password"
-          secureTextEntry
+          type="password"
           autoComplete="new-password"
           value={password}
-          onChangeText={setPassword}
+          onChange={(e) => setPassword(e.target.value)}
         />
 
-        <Pressable
-          style={[styles.button, busy && styles.buttonDisabled]}
-          onPress={handleSignUp}
+        <button
+          className="mt-2 w-full rounded-lg bg-primary py-3.5 text-base font-semibold text-primary-foreground disabled:opacity-60"
+          onClick={() => void handleSignUp()}
           disabled={busy || !email || !password || !firstName || !lastName}
         >
-          {busy ? (
-            <ActivityIndicator color={colors.primaryForeground} />
-          ) : (
-            <Text style={styles.buttonText}>Create account</Text>
-          )}
-        </Pressable>
+          {busy ? "Creating account…" : "Create account"}
+        </button>
 
-        <Pressable onPress={() => navigation.navigate("Login")}>
-          <Text style={styles.link}>Already have an account? Sign in</Text>
-        </Pressable>
-      </View>
-    </SafeAreaView>
+        <button className="mt-2 w-full text-center text-sm text-primary" onClick={onSwitchToLogin}>
+          Already have an account? Sign in
+        </button>
+      </div>
+    </div>
   );
 }
-
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.background, justifyContent: "center" },
-  form: { paddingHorizontal: 24, gap: 12 },
-  title: { fontSize: 26, fontWeight: "700", color: colors.foreground, textAlign: "center" },
-  subtitle: { fontSize: 14, color: colors.mutedForeground, textAlign: "center", marginBottom: 12 },
-  error: { color: colors.destructive, fontSize: 13, textAlign: "center" },
-  row: { flexDirection: "row", gap: 8 },
-  rowInput: { flex: 1 },
-  input: {
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: 10,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    fontSize: 16,
-    backgroundColor: colors.card,
-    color: colors.foreground,
-  },
-  button: {
-    backgroundColor: colors.primary,
-    borderRadius: 10,
-    paddingVertical: 14,
-    alignItems: "center",
-    marginTop: 8,
-  },
-  buttonDisabled: { opacity: 0.6 },
-  buttonText: { color: colors.primaryForeground, fontSize: 16, fontWeight: "600" },
-  link: { color: colors.primary, fontSize: 14, textAlign: "center", marginTop: 8 },
-});

@@ -1,15 +1,8 @@
 import { useState } from "react";
-import { ActivityIndicator, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
-import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 
 import { supabase } from "../lib/supabase";
-import { colors } from "../theme";
-import type { AuthStackParamList } from "../navigation/types";
 
-type Props = NativeStackScreenProps<AuthStackParamList, "Login">;
-
-export function LoginScreen({ navigation }: Props) {
+export function LoginScreen({ onSwitchToSignUp }: { onSwitchToSignUp: () => void }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -21,75 +14,47 @@ export function LoginScreen({ navigation }: Props) {
     const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
     setBusy(false);
     if (signInError) setError(signInError.message);
-    // On success, the RootNavigator's session listener switches to the app stack automatically.
+    // On success, the session listener in App.tsx switches to the app tabs automatically.
   }
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.form}>
-        <Text style={styles.title}>DriveWise</Text>
-        <Text style={styles.subtitle}>Sign in to keep tracking your earnings.</Text>
+    <div className="flex min-h-screen flex-col justify-center bg-background px-6">
+      <div className="space-y-3">
+        <h1 className="text-center text-3xl font-bold text-foreground">DriveWise</h1>
+        <p className="text-center text-sm text-muted-foreground">Sign in to keep tracking your earnings.</p>
 
-        {error ? <Text style={styles.error}>{error}</Text> : null}
+        {error ? <p className="text-center text-sm text-destructive">{error}</p> : null}
 
-        <TextInput
-          style={styles.input}
+        <input
+          className="w-full rounded-lg border border-border bg-card px-3.5 py-3 text-base text-foreground"
           placeholder="Email"
+          type="email"
           autoCapitalize="none"
           autoComplete="email"
-          keyboardType="email-address"
           value={email}
-          onChangeText={setEmail}
+          onChange={(e) => setEmail(e.target.value)}
         />
-        <TextInput
-          style={styles.input}
+        <input
+          className="w-full rounded-lg border border-border bg-card px-3.5 py-3 text-base text-foreground"
           placeholder="Password"
-          secureTextEntry
+          type="password"
           autoComplete="current-password"
           value={password}
-          onChangeText={setPassword}
+          onChange={(e) => setPassword(e.target.value)}
         />
 
-        <Pressable
-          style={[styles.button, busy && styles.buttonDisabled]}
-          onPress={handleSignIn}
+        <button
+          className="mt-2 w-full rounded-lg bg-primary py-3.5 text-base font-semibold text-primary-foreground disabled:opacity-60"
+          onClick={() => void handleSignIn()}
           disabled={busy || !email || !password}
         >
-          {busy ? <ActivityIndicator color={colors.primaryForeground} /> : <Text style={styles.buttonText}>Sign in</Text>}
-        </Pressable>
+          {busy ? "Signing in…" : "Sign in"}
+        </button>
 
-        <Pressable onPress={() => navigation.navigate("SignUp")}>
-          <Text style={styles.link}>Don&apos;t have an account? Create one</Text>
-        </Pressable>
-      </View>
-    </SafeAreaView>
+        <button className="mt-2 w-full text-center text-sm text-primary" onClick={onSwitchToSignUp}>
+          Don&apos;t have an account? Create one
+        </button>
+      </div>
+    </div>
   );
 }
-
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.background, justifyContent: "center" },
-  form: { paddingHorizontal: 24, gap: 12 },
-  title: { fontSize: 28, fontWeight: "700", color: colors.foreground, textAlign: "center" },
-  subtitle: { fontSize: 14, color: colors.mutedForeground, textAlign: "center", marginBottom: 12 },
-  error: { color: colors.destructive, fontSize: 13, textAlign: "center" },
-  input: {
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: 10,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    fontSize: 16,
-    backgroundColor: colors.card,
-    color: colors.foreground,
-  },
-  button: {
-    backgroundColor: colors.primary,
-    borderRadius: 10,
-    paddingVertical: 14,
-    alignItems: "center",
-    marginTop: 8,
-  },
-  buttonDisabled: { opacity: 0.6 },
-  buttonText: { color: colors.primaryForeground, fontSize: 16, fontWeight: "600" },
-  link: { color: colors.primary, fontSize: 14, textAlign: "center", marginTop: 8 },
-});

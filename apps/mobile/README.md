@@ -1,12 +1,12 @@
 # DriveWise Mobile
 
-**Status: implemented (v1) and building successfully.** A real Expo/React
-Native app with background GPS tracking, offline-first local storage, and
-the same Supabase backend `apps/web` uses. The GitHub Actions pipeline in
-[Getting the APK](#getting-the-apk) has produced a real, installable
-`drivewise.apk`, published at
-https://github.com/SiikNotic/DriveWise/releases — that page always has the
-latest build.
+**Status: rebuilt on Capacitor (v2) — replacing an Expo/React Native build
+that shipped a persistent, unresolved native crash on Start Tracking.** A
+Vite/React web app wrapped in a real, committed native Android project
+(`android/`), with background GPS tracking, offline-first local storage,
+and the same Supabase backend `apps/web` uses. See
+[Why Capacitor, not Expo](#why-capacitor-not-expo) for what changed and why,
+and [Getting the APK](#getting-the-apk) for the build pipeline.
 
 ## Why this has to be a native app, not the web dashboard
 
@@ -16,47 +16,71 @@ battery — every mobile OS aggressively kills background browser work, and
 there is no web API that overrides that. Nothing in `apps/web` implies
 otherwise (see that app's own `RouteMap`/tracking docs). Reliable background
 location requires a real mobile app using the platform's background-execution
-APIs:
+APIs — here, an Android foreground service with a persistent notification,
+via `@capacitor-community/background-geolocation`. See
+`CapacitorLocationProvider`.
 
-- **Android** (implemented here): a foreground service with a persistent
-  notification (`FOREGROUND_SERVICE` + `FOREGROUND_SERVICE_LOCATION`), plus
-  `ACCESS_BACKGROUND_LOCATION` — requested only *after* "while in use" is
-  already granted, per Play Store policy. See `ExpoLocationProvider`.
-- **iOS**: `UIBackgroundModes: location` plus "Always" location authorization
-  — the `app.json` entitlements for this are already in place; iOS-specific
-  testing hasn't been done yet (this increment was built and verified for
-  Android, since that's what was asked for).
+## Why Capacitor, not Expo
+
+The first version of this app (see git history before this rewrite) was
+Expo/React Native. It built successfully and installed, but crashed
+instantly — before any permission dialog — every time a driver tapped
+"Start Tracking," on real devices. Diagnosis went through several real,
+fixed bugs (a native-module SDK version mismatch, a Metro resolver bug) that
+turned out not to be the root cause: the crash was confirmed to be below the
+JS runtime (no `try/catch`, `ErrorBoundary`, or global `ErrorUtils` handler
+ever caught anything) with no way to attach a debugger or read `adb logcat`
+from the affected phone. Sentry crash reporting was wired up as the next
+diagnostic step, but the underlying decision was made first: stop fighting
+Expo's native module layer (Expo Modules API + JSI) for a class of
+driver-facing crash with no way to debug it from this environment, and move
+to an architecture with a fundamentally simpler, more inspectable native
+surface.
+
+Capacitor's plugins are plain Android library modules with a classic
+JS-bridge call convention — no Expo Modules Core, no custom JSI bindings, no
+SDK-aligned versioning scheme to get wrong. The tradeoff (documented, not
+hidden): Expo's official `expo-location` + `expo-task-manager` are more
+fully-featured than the free `@capacitor-community/background-geolocation`
+plugin used here. If it proves unreliable in practice, the two commonly-cited
+upgrades are the paid `capacitor-background-geolocation` (Transistorsoft) or
+a small custom native Android plugin — neither has been needed yet.
 
 ## What's actually here
 
 ```
 apps/mobile/
-  app.json            — Expo config: background-location permissions/plugins
-  eas.json            — EAS Build profiles (preview → .apk, production → .aab)
-  metro.config.js      — pnpm-workspace-aware Metro resolution
-  App.tsx / index.ts   — entry point; registers the background task before
-                          anything renders (see background-task.ts)
+  capacitor.config.ts  — appId/webDir + android.useLegacyBridge (required by
+                          the background-geolocation plugin — see its own
+                          comment in this file for why)
+  vite.config.ts, tailwind.config.js, tsconfig.json
+  android/             — the real, committed native Android project (NOT
+                          regenerated per build the way Expo's managed
+                          workflow was — this repo owns it directly, same as
+                          any native Android app)
   src/
-    theme.ts           — DriveWise's teal brand color, hand-kept in sync
-                          with apps/web's globals.css (no shared CSS exists
-                          between the two platforms)
+    App.tsx            — Sentry.init, session-gated auth vs. app tabs
     lib/
-      supabase.ts               — Supabase client (AsyncStorage session persistence)
+      supabase.ts               — Supabase client (browser localStorage session persistence)
       trip-source.ts            — local+server trip merge, mirrors apps/web's trip-source.ts
       location/
-        background-task.ts      — TaskManager.defineTask, module-scope registration
-        expo-location-provider.ts — implements @drivewise/shared's LocationProvider
+        capacitor-location-provider.ts — implements @drivewise/shared's
+                                          LocationProvider over
+                                          @capacitor-community/background-geolocation
       storage/
-        sqlite-trip-store.ts    — implements TripStore over expo-sqlite
+        indexeddb-trip-store.ts — implements TripStore over IndexedDB — a
+                                   straight copy of apps/web's
+                                   IndexedDbTripStore: Capacitor's Android
+                                   WebView is a real Chromium browser
+                                   context, so no native SQLite plugin is
+                                   needed the way React Native required one
       sync/
         supabase-sync-transport.ts — implements SyncTransport<StoredTrip>
     hooks/
       use-trip-recorder.ts — wires TripRecorder + SyncQueue to React, mirrors
                              apps/web's use-trip-recorder.ts
-      use-session.ts       — Supabase auth session state
-      use-online-status.ts — NetInfo-backed connectivity (hook + ref variant)
-    navigation/
-      RootNavigator.tsx    — session-gated: auth stack vs. app tabs
+      use-session.ts       — Supabase auth session state (identical to apps/web's)
+      use-online-status.ts — navigator.onLine + online/offline events (hook + ref variant)
     screens/
       LoginScreen.tsx, SignUpScreen.tsx
       TrackingScreen.tsx   — vehicle/purpose pickers, start/pause/resume/stop,
@@ -76,10 +100,10 @@ implement. None of that logic is duplicated or reimplemented here — see
 ## Data flow
 
 ```
-GPS sample (expo-location, background task)
-  -> ExpoLocationProvider delivers it to TripRecorder (packages/shared)
+GPS sample (@capacitor-community/background-geolocation, foreground service)
+  -> CapacitorLocationProvider delivers it to TripRecorder (packages/shared)
   -> TripRecorder filters it (gps-filter.ts), updates distance/duration,
-     writes the point + updated trip row to SqliteTripStore — synchronously,
+     writes the point + updated trip row to IndexedDbTripStore — synchronously,
      before anything touches the network
   -> on trip end: trip flips to sync_status "pending"
   -> SyncQueue (polled every 30s, see use-trip-recorder.ts) picks up
@@ -93,8 +117,8 @@ GPS sample (expo-location, background task)
 
 - Losing connectivity mid-trip never stops GPS recording or local distance
   calculation — both only ever depend on the device, never the network.
-- Every trip is fully usable (visible on the Trips screen) from local SQLite
-  alone before it has ever synced.
+- Every trip is fully usable (visible on the Trips screen) from local
+  IndexedDB alone before it has ever synced.
 - `SyncQueue` is the only part of this app that knows or cares whether the
   device is online; it degrades to "retry on the next backoff window"
   instead of surfacing errors to the driver.
@@ -104,111 +128,74 @@ GPS sample (expo-location, background task)
 Same tables and shape as `apps/web` writes to (`supabase/migrations/`):
 trips (aggregated distance/duration + purpose/vehicle/earnings) and their
 full-resolution `trip_points`, once synced. There is currently no opt-out
-for syncing raw GPS points — an earlier draft of this document described a
-"points stay local, only a simplified polyline syncs" design that was never
-actually built that way in `apps/web`'s shipped `SupabaseSyncTransport`, and
-this app mirrors that real behavior rather than the earlier plan. A
-points-retention/opt-in setting is a reasonable future addition, not
-something already implemented on either platform.
+for syncing raw GPS points — a points-retention/opt-in setting is a
+reasonable future addition, not something already implemented on either
+platform.
 
 ## Running it in development
 
 ```bash
 pnpm install                       # from the repo root — resolves @drivewise/shared too
 cp apps/mobile/.env.example apps/mobile/.env.local
-# fill in EXPO_PUBLIC_SUPABASE_URL / EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY
+# fill in VITE_SUPABASE_URL / VITE_SUPABASE_PUBLISHABLE_KEY
 # with the same values apps/web/.env.local uses (same Supabase project)
 cd apps/mobile
-npx expo run:android               # builds and installs a native dev client
+pnpm dev                           # plain web preview at localhost:5173 —
+                                    # background GPS won't work here, it
+                                    # needs the native Android shell
+npx cap run android                # builds + installs on a connected
+                                    # device/emulator with live location
 ```
 
-Use `expo run:android` (or an EAS development build), not plain
-`expo start` opened in Expo Go — Expo Go doesn't reliably support the
-custom foreground-service configuration `ExpoLocationProvider` depends on
-for background tracking. A dev client gives you the same fast-refresh
-workflow with the actual native background-location behavior.
+Any time `src/` changes need to reach the native app without a full
+`cap run`, use `pnpm cap:sync` (builds the web app, then `cap sync android`
+copies the output + plugin registration into `android/`).
 
 ## Getting the APK
 
-Everything above is real, working code — what this repo cannot do on its
-own is compile it into a binary. Three ways to get one, in the order
-you'll actually want them:
+`.github/workflows/build-android-apk.yml` builds the app entirely on the
+GitHub Actions runner — `pnpm build` (Vite) → `npx cap sync android` →
+`./gradlew assembleDebug` — and attaches the resulting `.apk` to a GitHub
+Release. No third-party build cloud, no opaque remote logs: GitHub's own
+`ubuntu-latest` runners ship the Android SDK already, and a debug-signed APK
+(Gradle's own auto-generated debug keystore) is exactly what "install this
+on a driver's phone to test" needs — no signing secrets to manage.
 
-### 1. GitHub Actions → GitHub Releases (recommended: this is where drivers download/update from)
+Getting a new build to drivers is: push a `mobile-v*` tag (e.g.
+`mobile-v0.2.0`), or click "Run workflow" on the Actions tab for an ad-hoc
+build — either way, a new release shows up under this repo's **Releases**
+page with `drivewise.apk` attached, and installing it over an existing
+install updates it in place (`android/app/build.gradle`'s `versionCode` is
+set from `ANDROID_VERSION_CODE=${{ github.run_number }}`, which only ever
+increases — see that file's own comment).
 
-`.github/workflows/build-android-apk.yml` builds the app on Expo's EAS
-Build cloud (not the GitHub runner — no Android SDK is installed there,
-because none of the compiling happens on the runner) and attaches the
-resulting `.apk` to a GitHub Release. Once it's set up, getting a new
-build to drivers is just: push a `mobile-v*` tag (e.g. `mobile-v0.1.0`),
-or click "Run workflow" on the Actions tab for an ad-hoc build — either
-way, a new release shows up under this repo's **Releases** page with
-`drivewise.apk` attached, and installing it over an existing install
-updates it in place (`eas.json`'s `autoIncrement` keeps each build's
-Android version code higher than the last, which is what lets Android
-install-over-update instead of refusing it as a downgrade).
-
-**One-time setup only a human can do** (no token this workflow needs can
-be created from inside a workflow file):
-1. Create a free account at [expo.dev](https://expo.dev) if you don't have one.
-2. Generate an access token: **expo.dev → your account → Settings →
-   Access Tokens → Create Token**.
-3. In this GitHub repo: **Settings → Secrets and variables → Actions → New
-   repository secret**, name it `EXPO_TOKEN`, paste the token.
-4. Push a tag or run the workflow manually. The very first run also
-   creates the EAS project itself (linking `app.json`'s slug to your Expo
-   account) — nothing else to configure beforehand.
+**One-time setup only a human can do** (repo secrets, not something a
+workflow file can create for itself):
+1. In this GitHub repo: **Settings → Secrets and variables → Actions → New
+   repository secret**, add `VITE_SUPABASE_URL` and
+   `VITE_SUPABASE_PUBLISHABLE_KEY` — the same values `apps/web`'s
+   `.env.local` uses (safe to expose in a built client app; the
+   publishable key replaces the legacy "anon" key).
+2. Push a tag or run the workflow manually.
 
 **Optional: crash reporting (Sentry).** There is no way to attach a
-debugger — or even read `adb logcat` — to a driver's phone, so a
-native/JSI-level crash (one below the JS runtime, which no in-app
-try/catch or React error boundary can see) is otherwise completely silent:
-the OS just shows "app has a bug, closed" with zero detail. `@sentry/react-native`
+debugger — or even read `adb logcat` — to a driver's phone, so any crash is
+otherwise reported as nothing more than "app has a bug, closed." `@sentry/capacitor`
 is wired up in `App.tsx` already; it only activates once a DSN is
 configured:
 1. Create a free account at [sentry.io](https://sentry.io), create a
-   project (platform: React Native).
+   project (platform: Capacitor or React).
 2. Copy its DSN: **Settings → Projects → (your project) → Client Keys (DSN)**.
    This is a public identifier, not a secret — safe to expose in the built app.
-3. In this GitHub repo: add it as a repository secret named `SENTRY_DSN`
-   (same place as `EXPO_TOKEN` above).
-4. The next build's "Configure Sentry DSN for the build" step sets it as
-   `EXPO_PUBLIC_SENTRY_DSN` in EAS's `preview` environment (`eas env:set`)
-   before building, so it gets embedded in the app. Without this secret
-   set, that step is skipped and `Sentry.init()` is a harmless no-op.
+3. In this GitHub repo: add it as a repository secret named `SENTRY_DSN`.
+   The build step passes it through as `VITE_SENTRY_DSN` automatically.
+   Without this secret set, `Sentry.init()` stays a harmless no-op.
 
-### 2. EAS Build from your own machine
+### Building it yourself, without CI
 
 ```bash
 cd apps/mobile
-npx eas login                 # same free Expo account as above
-eas build --platform android --profile preview
+pnpm build && npx cap sync android
+cd android && ./gradlew assembleDebug   # needs a local Android SDK
+# APK lands at android/app/build/outputs/apk/debug/app-debug.apk
 ```
-
-Useful for testing a build without waiting on CI, or before the GitHub
-Actions secret is set up.
-
-### 3. A fully local Android build
-
-```bash
-npx expo prebuild --platform android   # generates the native android/ project
-cd android && ./gradlew assembleRelease
-```
-
-Needs the Android SDK installed locally. No Expo account or network
-dependency on Expo's servers — useful if you want a build pipeline that
-doesn't depend on EAS at all.
-
-Option 1 has been run for real and produces a working, installable APK —
-see https://github.com/SiikNotic/DriveWise/releases for the latest one.
-Getting there took a few real CI-only bugs, fixed in the workflow's commit
-history: a `pnpm/action-setup` version conflict with this repo's
-`packageManager` field, the EAS project needing `owner` in `app.json` and
-`eas init --non-interactive --force` to link/create it under a robot
-token (which can't answer interactive prompts), and a `metro.config.js`
-bug (`disableHierarchicalLookup: true`) that broke resolution of pnpm's
-nested transitive dependencies during the JS bundling phase. Options 2 and
-3 haven't been run from this environment (no network to Expo's servers, no
-local Android SDK) but use the same `eas.json`/`app.json` config that's
-now confirmed working, so they should work the same way from a machine
-that has what they need.
