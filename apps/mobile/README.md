@@ -129,18 +129,59 @@ workflow with the actual native background-location behavior.
 ## Getting the APK
 
 Everything above is real, working code — what this repo cannot do on its
-own is compile it into a binary. That needs one of:
+own is compile it into a binary. Three ways to get one, in the order
+you'll actually want them:
 
-- **EAS Build (recommended)**: `npx eas login` (free Expo account), then
-  from `apps/mobile`: `eas build --platform android --profile preview`.
-  `eas.json`'s `preview` profile is already configured to produce an
-  installable `.apk` (rather than the Play-Store-only `.aab`).
-- **A local Android build**: `npx expo prebuild --platform android` to
-  generate the native `android/` project, then
-  `cd android && ./gradlew assembleRelease` with the Android SDK installed.
+### 1. GitHub Actions → GitHub Releases (recommended: this is where drivers download/update from)
 
-Neither of these has been run against this code yet — doing so needs either
-network access to Expo's build servers or a local Android SDK, and this
-increment was built in an environment with neither available. The code has
-been typechecked and is believed correct, but "produces a working APK" is
-unverified until one of the two commands above actually runs.
+`.github/workflows/build-android-apk.yml` builds the app on Expo's EAS
+Build cloud (not the GitHub runner — no Android SDK is installed there,
+because none of the compiling happens on the runner) and attaches the
+resulting `.apk` to a GitHub Release. Once it's set up, getting a new
+build to drivers is just: push a `mobile-v*` tag (e.g. `mobile-v0.1.0`),
+or click "Run workflow" on the Actions tab for an ad-hoc build — either
+way, a new release shows up under this repo's **Releases** page with
+`drivewise.apk` attached, and installing it over an existing install
+updates it in place (`eas.json`'s `autoIncrement` keeps each build's
+Android version code higher than the last, which is what lets Android
+install-over-update instead of refusing it as a downgrade).
+
+**One-time setup only a human can do** (no token this workflow needs can
+be created from inside a workflow file):
+1. Create a free account at [expo.dev](https://expo.dev) if you don't have one.
+2. Generate an access token: **expo.dev → your account → Settings →
+   Access Tokens → Create Token**.
+3. In this GitHub repo: **Settings → Secrets and variables → Actions → New
+   repository secret**, name it `EXPO_TOKEN`, paste the token.
+4. Push a tag or run the workflow manually. The very first run also
+   creates the EAS project itself (linking `app.json`'s slug to your Expo
+   account) — nothing else to configure beforehand.
+
+### 2. EAS Build from your own machine
+
+```bash
+cd apps/mobile
+npx eas login                 # same free Expo account as above
+eas build --platform android --profile preview
+```
+
+Useful for testing a build without waiting on CI, or before the GitHub
+Actions secret is set up.
+
+### 3. A fully local Android build
+
+```bash
+npx expo prebuild --platform android   # generates the native android/ project
+cd android && ./gradlew assembleRelease
+```
+
+Needs the Android SDK installed locally. No Expo account or network
+dependency on Expo's servers — useful if you want a build pipeline that
+doesn't depend on EAS at all.
+
+None of these three has actually been run against this code yet — options
+1 and 2 need network access to Expo's build servers, and option 3 needs a
+local Android SDK; this increment was built in an environment with none of
+the three available. The code has been typechecked and is believed
+correct, but "produces a working APK" is unverified until one of the paths
+above actually runs.

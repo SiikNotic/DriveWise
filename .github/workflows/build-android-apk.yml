@@ -1,0 +1,87 @@
+name: Build Android APK
+
+# Builds apps/mobile into an installable .apk and publishes it as a GitHub
+# Release asset, so drivers get "download/update from GitHub" instead of an
+# Expo dashboard link. The actual compile happens on Expo's own EAS Build
+# cloud (`eas build`) — this workflow just triggers it, downloads the
+# result, and attaches it here; no Android SDK is installed on the runner
+# because none of the compilation happens on the runner itself.
+#
+# One-time setup this workflow depends on (can't be done from a workflow
+# file — see apps/mobile/README.md's "Getting the APK" section):
+#   1. A free Expo account, linked once to this project (the first run
+#      creates the EAS project automatically if none exists yet).
+#   2. An access token from https://expo.dev/accounts/<you>/settings/access-tokens
+#   3. That token saved as a repository secret named EXPO_TOKEN
+#      (Settings > Secrets and variables > Actions > New repository secret).
+
+on:
+  push:
+    tags:
+      - "mobile-v*"
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/mobile
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+
+      - name: Install workspace dependencies
+        working-directory: .
+        run: pnpm install --frozen-lockfile
+
+      - name: Install EAS CLI
+        run: npm install -g eas-cli
+
+      - name: Verify Expo/EAS auth
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+        run: |
+          if [ -z "$EXPO_TOKEN" ]; then
+            echo "::error::EXPO_TOKEN repository secret is not set — see apps/mobile/README.md's 'Getting the APK' section for how to create one."
+            exit 1
+          fi
+          eas whoami
+
+      - name: Build Android APK on EAS
+        id: build
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+        run: |
+          eas build --platform android --profile preview --non-interactive --wait --json > build-result.json
+          cat build-result.json
+          echo "artifact_url=$(node -e "console.log(JSON.parse(require('fs').readFileSync('build-result.json','utf8'))[0].artifacts.buildUrl)")" >> "$GITHUB_OUTPUT"
+          echo "build_version=$(node -e "console.log(JSON.parse(require('fs').readFileSync('build-result.json','utf8'))[0].appVersion)")" >> "$GITHUB_OUTPUT"
+
+      - name: Download the built APK
+        run: curl -fL -o drivewise.apk "${{ steps.build.outputs.artifact_url }}"
+
+      - name: Publish to GitHub Releases
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_type == 'tag' && github.ref_name || format('mobile-run-{0}', github.run_number) }}
+          name: DriveWise Android v${{ steps.build.outputs.build_version }}
+          files: apps/mobile/drivewise.apk
+          body: |
+            Automated build from commit ${{ github.sha }}.
+
+            **To install or update**: download `drivewise.apk` below, open it on
+            an Android device (allow "install from this source" if prompted),
+            and install over the previous version.
