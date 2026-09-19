@@ -20,8 +20,13 @@ config.resolver.nodeModulesPaths = [
 ];
 
 // pnpm's node_modules is real symlinks (not npm/yarn's flat copy) — Metro
-// needs both of these to follow them correctly.
+// needs this to follow them correctly. Hierarchical lookup must stay
+// enabled (the default): pnpm scopes each package's own dependencies into
+// a node_modules folder nested next to it inside .pnpm/, and only Metro's
+// normal upward walk from that symlinked location finds them — disabling
+// it (as an earlier version of this file did) broke resolution of any
+// transitive dependency that isn't hoisted to the top-level node_modules,
+// e.g. fast-base64-decode (a dependency of react-native-get-random-values).
 config.resolver.unstable_enableSymlinks = true;
-config.resolver.disableHierarchicalLookup = true;
 
 module.exports = config;
