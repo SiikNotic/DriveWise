@@ -29,7 +29,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { StatusBadge, type StatusTone } from "@/components/patterns/status-badge";
-import { RouteMap } from "@/components/trips/route-map";
+import { TripRouteMap } from "@/components/trips/trip-route-map";
 import { fetchTripDetail, updateTripPurpose, deleteTripRecord, type TripDetail as TripDetailData } from "@/lib/trips/trip-source";
 
 type VehicleRow = Database["public"]["Tables"]["vehicles"]["Row"];
@@ -163,7 +163,7 @@ export function TripDetail({
         </CardHeader>
         <CardContent>
           {points.length >= 2 ? (
-            <RouteMap points={points} />
+            <TripRouteMap points={points} />
           ) : (
             <p className="text-muted-foreground text-sm">{t("route.empty")}</p>
           )}

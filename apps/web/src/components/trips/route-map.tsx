@@ -7,13 +7,12 @@ const PADDING = 16;
 /**
  * A lightweight, dependency-free route-shape rendering: a normalized SVG
  * polyline through the trip's recorded points, with no basemap/street
- * tiles. This project has no maps API key configured, and the app's own
- * local-first design means every trip's route data (raw trip_points) is
- * already available client-side without a network call — an offline-
- * capable shape plot fits that better than a tile-based map would. Swap
- * this out for a real interactive map (Mapbox/Leaflet/Google Maps) once a
- * provider and API key are chosen; nothing else in the Trips feature
- * depends on how this renders.
+ * tiles. Used as the fallback when `NEXT_PUBLIC_MAPBOX_TOKEN` isn't
+ * configured (see `TripRouteMap`, which picks between this and the real
+ * Mapbox map) — this app's local-first design means every trip's route
+ * data (raw trip_points) is already available client-side without a
+ * network call, so an offline-capable shape plot is still useful on its
+ * own, not just a placeholder.
  */
 export function RouteMap({ points }: { points: GeoPoint[] }) {
   if (points.length < 2) return null;
