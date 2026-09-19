@@ -68,8 +68,12 @@ jobs:
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
         run: |
-          eas build --platform android --profile preview --non-interactive --wait --json > build-result.json
+          eas build --platform android --profile preview --non-interactive --wait --json > build-result.json || BUILD_FAILED=1
           cat build-result.json
+          if [ -n "$BUILD_FAILED" ]; then
+            echo "::error::eas build failed — see the build-result.json contents printed above for the reason."
+            exit 1
+          fi
           echo "artifact_url=$(node -e "console.log(JSON.parse(require('fs').readFileSync('build-result.json','utf8'))[0].artifacts.buildUrl)")" >> "$GITHUB_OUTPUT"
           echo "build_version=$(node -e "console.log(JSON.parse(require('fs').readFileSync('build-result.json','utf8'))[0].appVersion)")" >> "$GITHUB_OUTPUT"
 
