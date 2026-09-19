@@ -29,6 +29,7 @@ import { Label } from "@/components/ui/label";
 import { NativeSelect } from "@/components/ui/native-select";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { StatusBadge, type StatusTone } from "@/components/patterns/status-badge";
+import { cn } from "@/lib/utils";
 import {
   Dialog,
   DialogClose,
@@ -86,6 +87,7 @@ export function TrackingPanel({
 
   const isIdle = snapshot.status === "idle";
   const isPaused = snapshot.status === "paused";
+  const isRecording = !isIdle && !isPaused;
 
   const expectedPay = expectedPayInput ? Number(expectedPayInput) : null;
   const perMile =
@@ -141,9 +143,27 @@ export function TrackingPanel({
         : null;
 
   return (
-    <Card className="overflow-hidden border-primary/10 shadow-[0_12px_30px_-24px_rgba(20,32,31,0.55)]">
-      <CardHeader className="border-b border-border/60 bg-secondary/35 pb-4">
-        <CardTitle>{t("title")}</CardTitle>
+    <Card
+      className={cn(
+        "overflow-hidden border-primary/10 shadow-[0_12px_30px_-24px_rgba(20,32,31,0.55)] transition-colors",
+        !isIdle && "hud-panel hud-glow border-transparent",
+      )}
+    >
+      <CardHeader
+        className={cn(
+          "border-b pb-4",
+          isIdle ? "border-border/60 bg-secondary/35" : "border-border/60 bg-transparent",
+        )}
+      >
+        <CardTitle className="flex items-center gap-2">
+          {isRecording ? (
+            <span className="relative flex size-2.5" aria-hidden="true">
+              <span className="absolute inline-flex size-full animate-ping rounded-full bg-primary opacity-75" />
+              <span className="relative inline-flex size-2.5 rounded-full bg-primary" />
+            </span>
+          ) : null}
+          {t("title")}
+        </CardTitle>
       </CardHeader>
       <CardContent className="flex flex-col gap-4">
         {isIdle ? (

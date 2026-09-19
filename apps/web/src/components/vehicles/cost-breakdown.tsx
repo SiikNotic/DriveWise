@@ -13,7 +13,16 @@ import { formatUsdPerMile } from "@drivewise/shared";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { Gauge } from "@/components/ui/gauge";
 import { cn } from "@/lib/utils";
+
+/**
+ * Purely a visual reference point for the gauge ring below — not a
+ * benchmark or judgment about whether a given cost/mile is "good". Chosen
+ * as a round number comfortably above typical gig-driving operating costs
+ * so the ring reads meaningfully across the range drivers actually see.
+ */
+const COST_GAUGE_REFERENCE_CAP_USD = 1.0;
 
 /**
  * The itemized cost-per-mile breakdown, used both as a live preview while
@@ -68,6 +77,16 @@ export function CostBreakdown({
         <CardTitle>{t("title")}</CardTitle>
       </CardHeader>
       <CardContent className="flex flex-col gap-4">
+        <div className="flex items-center justify-center py-1">
+          <Gauge
+            value={(breakdown.totalCostPerMileUsd / COST_GAUGE_REFERENCE_CAP_USD) * 100}
+            size={128}
+            strokeWidth={10}
+            label={formatUsdPerMile(breakdown.totalCostPerMileUsd, locale, distanceUnitLabel)}
+            sublabel={t("total")}
+          />
+        </div>
+
         <dl className="flex flex-col gap-2.5">
           {rows.map((row) => (
             <div key={row.key} className="flex items-center justify-between gap-2">

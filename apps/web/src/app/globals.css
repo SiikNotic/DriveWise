@@ -21,7 +21,7 @@
  * sub-3:1 on light by design) and must never be the sole carrier of meaning.
  */
 :root {
-  --radius: 0.875rem;
+  --radius: 1rem;
 
   --background: #f4f7f6;
   --foreground: #14201f;
@@ -30,7 +30,7 @@
   --popover: #ffffff;
   --popover-foreground: #17181a;
 
-  /* Brand amber ("ignition"). Deep enough for white button text at 5.06:1. */
+  /* Brand teal ("GPS/telemetry" accent). Deep enough for white button text at 5.06:1. */
   --primary: #0f766e;
   --primary-foreground: #ffffff;
 
@@ -170,6 +170,41 @@
 }
 
 @layer utilities {
+  /*
+   * Dark "HUD" surface — a token-override scope, not a new component
+   * variant. Overriding the same custom properties every card/badge/alert
+   * already reads (--card, --muted-foreground, --border, --primary, ...)
+   * means the existing children render correctly on the dark surface
+   * without each one needing its own dark-mode-aware className. Used for
+   * the one "hero" screen in the mockup that's dark rather than light: the
+   * active-trip Tracking panel.
+   */
+  .hud-panel {
+    --background: #0b1220;
+    --foreground: #eafffa;
+    --card: #0b1220;
+    --card-foreground: #eafffa;
+    --popover: #0b1220;
+    --popover-foreground: #eafffa;
+    --muted: #0f2027;
+    --muted-foreground: #7dd3c8;
+    --secondary: #0f2027;
+    --secondary-foreground: #eafffa;
+    --accent: #123a38;
+    --accent-foreground: #eafffa;
+    --border: rgba(45, 212, 191, 0.18);
+    --input: rgba(45, 212, 191, 0.25);
+    --primary: #2dd4bf;
+    --primary-foreground: #06231f;
+    background: radial-gradient(120% 140% at 15% -10%, #123a38 0%, #0b1220 55%, #060a12 100%);
+  }
+
+  .hud-glow {
+    box-shadow:
+      0 0 0 1px rgba(45, 212, 191, 0.16),
+      0 24px 60px -24px rgba(13, 148, 136, 0.55);
+  }
+
   /*
    * Numeric display rules (dataviz skill, "Figures"):
    * large standalone values (hero numbers, stat-tile values) use the

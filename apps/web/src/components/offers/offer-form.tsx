@@ -19,6 +19,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Separator } from "@/components/ui/separator";
+import { Gauge } from "@/components/ui/gauge";
 import { StatusBadge } from "@/components/patterns/status-badge";
 import { SubmitButton } from "@/components/forms/submit-button";
 import { ThresholdsForm } from "@/components/offers/thresholds-form";
@@ -198,7 +199,7 @@ export function OfferForm({
             <CardHeader>
               <CardTitle>{tr("title")}</CardTitle>
             </CardHeader>
-            <CardContent className="flex flex-col gap-4">
+            <CardContent className="flex flex-col gap-5">
               <div className="flex flex-col gap-1">
                 <span className="text-muted-foreground text-xs">{tr("estimatedNet")}</span>
                 <span className="text-metric text-4xl">
@@ -206,19 +207,48 @@ export function OfferForm({
                 </span>
               </div>
 
-              <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-                <div className="flex flex-col gap-0.5">
-                  <span className="text-muted-foreground text-xs">{tr("netPerHour")}</span>
-                  <span className="text-metric text-lg">
-                    {formatUsdPerHour(analysis.estimatedNetHourlyUsd, locale, hourUnitLabel)}
-                  </span>
+              {/* Two gauges — each ring's fill is the offer's actual rate as a
+                  percentage of *your* saved minimum target (capped visually
+                  at 100%), not an arbitrary scale, so "full and green" always
+                  means "meets or beats what you told DriveWise you need". */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="flex flex-col items-center gap-2">
+                  <Gauge
+                    value={
+                      minHourlyEarningsUsd > 0
+                        ? (analysis.estimatedNetHourlyUsd / minHourlyEarningsUsd) * 100
+                        : 100
+                    }
+                    color={analysis.meetsHourlyTarget ? "var(--positive)" : "var(--warning)"}
+                    label={formatUsdPerHour(analysis.estimatedNetHourlyUsd, locale, hourUnitLabel)}
+                    sublabel={tr("netPerHour")}
+                    size={104}
+                  />
+                  <StatusBadge tone={analysis.meetsHourlyTarget ? "positive" : "negative"}>
+                    {tfa(analysis.meetsHourlyTarget ? "hourlyMet" : "hourlyBelow")}
+                  </StatusBadge>
                 </div>
-                <div className="flex flex-col gap-0.5">
-                  <span className="text-muted-foreground text-xs">{tr("netPerMile")}</span>
-                  <span className="text-metric text-lg">
-                    {formatUsdPerMile(analysis.netEarningsPerMileUsd, locale, distanceUnitLabel)}
-                  </span>
+                <div className="flex flex-col items-center gap-2">
+                  <Gauge
+                    value={
+                      minPerMileEarningsUsd > 0
+                        ? (analysis.netEarningsPerMileUsd / minPerMileEarningsUsd) * 100
+                        : 100
+                    }
+                    color={analysis.meetsPerMileTarget ? "var(--positive)" : "var(--warning)"}
+                    label={formatUsdPerMile(analysis.netEarningsPerMileUsd, locale, distanceUnitLabel)}
+                    sublabel={tr("netPerMile")}
+                    size={104}
+                  />
+                  <StatusBadge tone={analysis.meetsPerMileTarget ? "positive" : "negative"}>
+                    {tfa(analysis.meetsPerMileTarget ? "perMileMet" : "perMileBelow")}
+                  </StatusBadge>
                 </div>
+              </div>
+
+              <Separator />
+
+              <div className="grid grid-cols-2 gap-4">
                 <div className="flex flex-col gap-0.5">
                   <span className="text-muted-foreground text-xs">{tr("grossPerHour")}</span>
                   <span className="text-metric text-lg">
@@ -231,17 +261,6 @@ export function OfferForm({
                     {formatUsdPerMile(analysis.grossEarningsPerMileUsd, locale, distanceUnitLabel)}
                   </span>
                 </div>
-              </div>
-
-              <Separator />
-
-              <div className="flex flex-col gap-2">
-                <StatusBadge tone={analysis.meetsHourlyTarget ? "positive" : "negative"}>
-                  {tfa(analysis.meetsHourlyTarget ? "hourlyMet" : "hourlyBelow")}
-                </StatusBadge>
-                <StatusBadge tone={analysis.meetsPerMileTarget ? "positive" : "negative"}>
-                  {tfa(analysis.meetsPerMileTarget ? "perMileMet" : "perMileBelow")}
-                </StatusBadge>
               </div>
             </CardContent>
           </Card>

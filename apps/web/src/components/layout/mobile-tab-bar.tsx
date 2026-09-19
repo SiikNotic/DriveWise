@@ -32,10 +32,10 @@ export function MobileTabBar() {
   return (
     <>
       <nav
-        className="fixed inset-x-0 bottom-0 z-10 border-t bg-background/95 backdrop-blur pb-[env(safe-area-inset-bottom)] sm:hidden"
+        className="fixed inset-x-3 bottom-[calc(0.75rem+env(safe-area-inset-bottom))] z-10 sm:hidden"
         aria-label={t("nav.dashboard")}
       >
-        <div className="mx-auto flex max-w-5xl">
+        <div className="mx-auto flex max-w-5xl items-center justify-between gap-0.5 rounded-2xl border border-border/60 bg-card/95 p-1.5 shadow-lg backdrop-blur supports-[backdrop-filter]:bg-card/85">
           {primaryItems.map((item) => {
             const isActive = isNavItemActive(pathname, item.href);
             const Icon = item.icon;
@@ -45,8 +45,8 @@ export function MobileTabBar() {
                 href={item.href}
                 aria-current={isActive ? "page" : undefined}
                 className={cn(
-                  "flex flex-1 flex-col items-center gap-0.5 py-2 text-[11px] font-medium transition-colors",
-                  isActive ? "text-primary" : "text-muted-foreground",
+                  "flex flex-1 flex-col items-center gap-0.5 rounded-xl py-1.5 text-[11px] font-medium transition-colors",
+                  isActive ? "bg-primary/10 text-primary" : "text-muted-foreground",
                 )}
               >
                 <Icon className="size-5" aria-hidden="true" />
@@ -59,8 +59,8 @@ export function MobileTabBar() {
             onClick={() => setMoreOpen(true)}
             aria-current={isOverflowActive ? "page" : undefined}
             className={cn(
-              "flex flex-1 flex-col items-center gap-0.5 py-2 text-[11px] font-medium transition-colors",
-              isOverflowActive ? "text-primary" : "text-muted-foreground",
+              "flex flex-1 flex-col items-center gap-0.5 rounded-xl py-1.5 text-[11px] font-medium transition-colors",
+              isOverflowActive ? "bg-primary/10 text-primary" : "text-muted-foreground",
             )}
           >
             <MoreHorizontalIcon className="size-5" aria-hidden="true" />
