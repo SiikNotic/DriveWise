@@ -48,3 +48,10 @@ pnpm-debug.log*
 .agents/
 .claude/
 skills-lock.json
+
+# ...except project-committed "run" skills (agent driver + docs for
+# building/launching/driving a unit), which are meant to ship with the repo.
+!apps/web/.claude/
+!apps/web/.claude/skills/
+!apps/web/.claude/skills/run-drivewise-web/
+!apps/web/.claude/skills/run-drivewise-web/**
