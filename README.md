@@ -427,14 +427,17 @@ Browsing and managing the trips Mileage Tracking already records — the
   straight to IndexedDB while still local — the same dual-backend pattern
   as the list, kept in one place (`trip-source.ts`) rather than duplicated
   per component.
-- **Route rendering** (`components/trips/route-map.tsx`): a dependency-free
-  SVG polyline plot of the trip's recorded GPS points (equirectangular-
-  corrected so it isn't stretched), not a tile-based interactive map — this
-  project has no maps API key configured, and the points are already
-  available client-side (from `trip_points`, synced or local) without a
-  network call, so an offline-capable shape plot fits better than adding a
-  mapping dependency for one feature. Swapping in a real map later doesn't
-  touch anything else in this feature.
+- **Route rendering** (`components/trips/trip-route-map.tsx`): a real
+  interactive Mapbox map (street tiles, pan/zoom, start/end pins, the
+  recorded route as a line) via `mapbox-gl`, gated on
+  `NEXT_PUBLIC_MAPBOX_TOKEN` — `mapbox-gl` only ever loads client-side
+  (it reads `window` at import time) via `next/dynamic`, and only when a
+  token is actually configured. Without one, it falls back to
+  `components/trips/route-map.tsx`: a dependency-free SVG polyline plot of
+  the trip's recorded GPS points (equirectangular-corrected so it isn't
+  stretched) — no basemap, but the points are already available
+  client-side (from `trip_points`, synced or local) without a network
+  call, so it still works fully offline on its own.
 - **Offline is shown explicitly**, not just implied: a banner reads "You're
   offline — recent trips are saved on this device and will sync
   automatically" whenever `navigator.onLine` is false, in addition to each
@@ -945,14 +948,13 @@ Supabase project's URL and publishable key to enable the Supabase client.
    root, installs workspace dependencies (including `@drivewise/shared`)
    from there automatically — no custom install command needed.
 4. Add the environment variables from `apps/web/.env.example`
-   (`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`) in
-   the Vercel project's Environment Variables settings, for Production,
-   Preview, and Development.
+   (`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`,
+   `NEXT_PUBLIC_MAPBOX_TOKEN`) in the Vercel project's Environment
+   Variables settings, for Production, Preview, and Development.
 5. Push to a branch to get a Preview Deployment; push/merge to the
    production branch to deploy to production.
 
-No Vercel project has been created and no tokens are stored in this repo —
-this is a checklist for whoever connects the GitHub repo to Vercel.
+A Vercel project is live at this point (see the badge/link in the intro).
 
 ## What's implemented vs. planned
 
