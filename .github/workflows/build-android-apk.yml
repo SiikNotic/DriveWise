@@ -58,6 +58,11 @@ jobs:
           fi
           eas whoami
 
+      - name: Ensure EAS project is linked
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+        run: eas init --non-interactive
+
       - name: Build Android APK on EAS
         id: build
         env:
